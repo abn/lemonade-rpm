@@ -20,6 +20,7 @@ BuildRequires:  cpp-httplib-devel >= 0.26.0
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 BuildRequires:  systemd-rpm-macros
+BuildRequires:  systemd-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  libappindicator-gtk3-devel
 BuildRequires:  libnotify-devel
