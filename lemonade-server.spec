@@ -5,6 +5,7 @@ Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
 Source0:        %{name}-%{version}.tar.gz
+Patch0:         linux-tray.patch
 
 %define debug_package %{nil}
 
@@ -19,6 +20,9 @@ BuildRequires:  cpp-httplib-devel >= 0.26.0
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 BuildRequires:  systemd-rpm-macros
+BuildRequires:  gtk3-devel
+BuildRequires:  libappindicator-gtk3-devel
+BuildRequires:  libnotify-devel
 
 # For the app subpackage
 BuildRequires:  nodejs
@@ -40,8 +44,9 @@ A modern desktop interface for managing and interacting with the
 Lemonade LLM server.
 
 %prep
-%autosetup -n %{name}-%{version}
+%autosetup -N -n %{name}-%{version}
 cd lemonade
+%patch0 -p1
 # Fix httplib detection and linking on Fedora (where it is header-only and has no .pc file)
 sed -i 's/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_FOUND})/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_INCLUDE_DIRS})/' CMakeLists.txt
 sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' CMakeLists.txt src/cpp/tray/CMakeLists.txt
