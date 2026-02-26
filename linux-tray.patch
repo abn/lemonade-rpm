@@ -1,0 +1,585 @@
+diff --git a/src/cpp/include/lemon/cli_parser.h b/src/cpp/include/lemon/cli_parser.h
+index 4f083893..070070c7 100644
+--- a/src/cpp/include/lemon/cli_parser.h
++++ b/src/cpp/include/lemon/cli_parser.h
+@@ -23,8 +23,8 @@ struct ServerConfig {
+ 
+ struct TrayConfig {
+     std::string command;  // No default - must be explicitly specified
+-    // Default to headless mode on Linux (no tray support), tray mode on other platforms
+-#if defined(__linux__) && !defined(__ANDROID__)
++    // Default to headless mode on Linux only when tray support is not available (no GTK/AppIndicator)
++#if defined(__linux__) && !defined(__ANDROID__) && !defined(HAVE_APPINDICATOR)
+     bool no_tray = true;
+ #else
+     bool no_tray = false;
+diff --git a/src/cpp/include/lemon_tray/platform/linux_tray.h b/src/cpp/include/lemon_tray/platform/linux_tray.h
+index 5abd2415..43caed22 100644
+--- a/src/cpp/include/lemon_tray/platform/linux_tray.h
++++ b/src/cpp/include/lemon_tray/platform/linux_tray.h
+@@ -4,6 +4,14 @@
+ 
+ #include "tray_interface.h"
+ 
++#ifdef HAVE_APPINDICATOR
++#include <gtk/gtk.h>
++#include <libappindicator/app-indicator.h>
++#ifdef HAVE_LIBNOTIFY
++#include <libnotify/notify.h>
++#endif
++#endif
++
+ namespace lemon_tray {
+ 
+ class LinuxTray : public TrayInterface {
+@@ -28,8 +36,14 @@ public:
+     void set_log_level(const std::string& log_level) override;
+ 
+ private:
+-    // Headless implementation - no GUI dependencies
+-    // Linux tray support disabled to avoid LGPL dependencies
++#ifdef HAVE_APPINDICATOR
++    AppIndicator* indicator_;
++    GtkWidget* gtk_menu_;
++
++    // Helper to recursively build menu
++    void build_gtk_menu(const Menu& menu, GtkWidget* parent_menu);
++#endif
++
+     std::string app_name_;
+     std::string icon_path_;
+     std::string log_level_;
+diff --git a/src/cpp/tray/CMakeLists.txt b/src/cpp/tray/CMakeLists.txt
+index eca48db6..4825a9b0 100644
+--- a/src/cpp/tray/CMakeLists.txt
++++ b/src/cpp/tray/CMakeLists.txt
+@@ -55,16 +55,66 @@ elseif(APPLE)
+     )
+ 
+ elseif(UNIX)  # Linux
+-    # Linux builds are headless-only (no tray support)
+-    # This avoids LGPL dependencies (GTK3, libappindicator3, libnotify)
+-    message(STATUS "Linux build: Tray application disabled (headless mode only)")
+-    message(STATUS "Use 'lemonade-server serve --no-tray' to run server")
++    # Check for Linux tray dependencies (GTK3, AppIndicator3)
++    find_package(PkgConfig REQUIRED)
+ 
+-    # Include stub Linux tray implementation (headless mode)
+-    set(PLATFORM_SOURCES
+-        platform/linux_tray.cpp
+-    )
+-    set(PLATFORM_LIBS "")
++    # Allow explicitly enabling/disabling tray support from command line.
++    # Default is OFF (auto-detect): tray is enabled if dependencies are found.
++    # Set -DENABLE_LINUX_TRAY=ON to require tray support (fail if deps missing).
++    option(ENABLE_LINUX_TRAY "Enable Linux system tray support (requires GTK3 + AppIndicator3)" OFF)
++
++    pkg_check_modules(GTK3 gtk+-3.0)
++
++    # Try upstream libappindicator first, then Ayatana (Debian/Ubuntu)
++    pkg_check_modules(APP_INDICATOR3 appindicator3-0.1)
++    if(NOT APP_INDICATOR3_FOUND)
++        pkg_check_modules(APP_INDICATOR3 ayatana-appindicator3-0.1)
++    endif()
++
++    pkg_check_modules(LIBNOTIFY libnotify)
++
++    if(ENABLE_LINUX_TRAY AND (NOT GTK3_FOUND OR NOT APP_INDICATOR3_FOUND))
++        message(FATAL_ERROR "ENABLE_LINUX_TRAY=ON but required dependencies not found. "
++            "Install gtk3-devel and libappindicator-gtk3-devel (or ayatana-appindicator3-devel).")
++    endif()
++
++    if(GTK3_FOUND AND APP_INDICATOR3_FOUND)
++        set(ENABLE_LINUX_TRAY ON)
++        message(STATUS "Linux build: Tray application ENABLED (GTK3 + AppIndicator3)")
++
++        set(PLATFORM_SOURCES
++            platform/linux_tray.cpp
++        )
++
++        set(PLATFORM_LIBS
++            ${GTK3_LIBRARIES}
++            ${APP_INDICATOR3_LIBRARIES}
++        )
++
++        set(PLATFORM_DEFINITIONS HAVE_APPINDICATOR)
++
++        set(PLATFORM_INCLUDE_DIRS
++            ${GTK3_INCLUDE_DIRS}
++            ${APP_INDICATOR3_INCLUDE_DIRS}
++        )
++
++        if(LIBNOTIFY_FOUND)
++            message(STATUS "Linux build: Notifications ENABLED (libnotify)")
++            list(APPEND PLATFORM_LIBS ${LIBNOTIFY_LIBRARIES})
++            list(APPEND PLATFORM_DEFINITIONS HAVE_LIBNOTIFY)
++            list(APPEND PLATFORM_INCLUDE_DIRS ${LIBNOTIFY_INCLUDE_DIRS})
++        endif()
++
++    else()
++        message(STATUS "Linux build: Tray dependencies not found (GTK3/AppIndicator3 missing)")
++        message(STATUS "Linux build: Tray application disabled (headless mode only)")
++
++        # Include stub Linux tray implementation (headless mode)
++        set(PLATFORM_SOURCES
++            platform/linux_tray.cpp
++        )
++        set(PLATFORM_LIBS "")
++    endif()
+ endif()
+ 
+ # Common sources
+@@ -115,9 +165,17 @@ target_link_libraries(lemonade-server PRIVATE
+     ${PLATFORM_LIBS}
+ )
+ 
++target_include_directories(lemonade-server PRIVATE
++    ${PLATFORM_INCLUDE_DIRS}
++)
++
++target_compile_definitions(lemonade-server PRIVATE
++    ${PLATFORM_DEFINITIONS}
++)
++
+ # Link httplib based on what's available (set by parent CMakeLists.txt)
+ if(USE_SYSTEM_HTTPLIB)
+-    target_link_libraries(lemonade-server PRIVATE cpp-httplib)
++    target_link_libraries(lemonade-server PRIVATE httplib::httplib)
+ else()
+     target_link_libraries(lemonade-server PRIVATE httplib::httplib)
+ endif()
+@@ -290,7 +348,16 @@ if(WIN32)
+ elseif(APPLE)
+     message(STATUS "macOS tray support: PARTIAL (stub)")
+ elseif(UNIX)
+-    message(STATUS "Linux tray support: HEADLESS ONLY (use --no-tray)")
+-    message(STATUS "  No LGPL dependencies - permissively licensed only")
++    if(ENABLE_LINUX_TRAY)
++        message(STATUS "Linux tray support: ENABLED (GTK3 + AppIndicator3)")
++        if(LIBNOTIFY_FOUND)
++            message(STATUS "  Notifications: ENABLED (libnotify)")
++        else()
++            message(STATUS "  Notifications: DISABLED")
++        endif()
++    else()
++        message(STATUS "Linux tray support: HEADLESS ONLY (use --no-tray)")
++        message(STATUS "  Dependencies missing: GTK3/AppIndicator3")
++    endif()
+ endif()
+ message(STATUS "===============================================")
+diff --git a/src/cpp/tray/platform/linux_tray.cpp b/src/cpp/tray/platform/linux_tray.cpp
+index 134d7565..7989a0c2 100644
+--- a/src/cpp/tray/platform/linux_tray.cpp
++++ b/src/cpp/tray/platform/linux_tray.cpp
+@@ -2,13 +2,302 @@
+ 
+ #include "lemon_tray/platform/linux_tray.h"
+ #include <iostream>
+-
+-// Headless stub implementation for Linux
+-// This avoids LGPL dependencies (GTK3, libappindicator3, libnotify)
+-// Users should run with --no-tray flag on Linux
++#include <vector>
++#include <utility>
+ 
+ namespace lemon_tray {
+ 
++#ifdef HAVE_APPINDICATOR
++
++// --- Real Implementation ---
++
++// GTK callbacks need to be static or global
++static void on_menu_item_activate(GtkWidget* widget, gpointer data) {
++    auto* item = static_cast<MenuItem*>(data);
++    if (item && item->callback) {
++        item->callback();
++    }
++}
++
++LinuxTray::LinuxTray()
++    : indicator_(nullptr)
++    , gtk_menu_(nullptr)
++    , should_exit_(false)
++    , log_level_("info")
++{
++}
++
++LinuxTray::~LinuxTray() {
++    // GTK widgets are destroyed by the main loop or parent
++    // indicator_ is a GObject, should likely be unreffed if we created it,
++    // but usually quitting the app handles it.
++}
++
++bool LinuxTray::initialize(const std::string& app_name, const std::string& icon_path) {
++    app_name_ = app_name;
++    icon_path_ = icon_path;
++
++    // Initialize GTK (without parsing args)
++    if (!gtk_init_check(0, nullptr)) {
++        std::cerr << "Failed to initialize GTK" << std::endl;
++        return false;
++    }
++
++    // Create AppIndicator
++    // Use app name as ID
++    // Category: APP_INDICATOR_CATEGORY_APPLICATION_STATUS
++    indicator_ = app_indicator_new(
++        app_name.c_str(),
++        "indicator-messages", // Placeholder, will be replaced by set_icon
++        APP_INDICATOR_CATEGORY_APPLICATION_STATUS
++    );
++
++    if (!indicator_) {
++        std::cerr << "Failed to create AppIndicator" << std::endl;
++        return false;
++    }
++
++    // Set status to active
++    app_indicator_set_status(indicator_, APP_INDICATOR_STATUS_ACTIVE);
++
++    // Set icon
++    set_icon(icon_path);
++
++#ifdef HAVE_LIBNOTIFY
++    if (!notify_init(app_name.c_str())) {
++        std::cerr << "Failed to initialize libnotify" << std::endl;
++        // Continue anyway
++    }
++#endif
++
++    return true;
++}
++
++void LinuxTray::run() {
++    // Trigger ready callback on main loop start
++    if (ready_callback_) {
++        // Schedule it to run on the main loop
++        g_idle_add([](gpointer data) -> gboolean {
++            auto* self = static_cast<LinuxTray*>(data);
++            if (self->ready_callback_) {
++                self->ready_callback_();
++            }
++            return G_SOURCE_REMOVE;
++        }, this);
++    }
++
++    gtk_main();
++
++#ifdef HAVE_LIBNOTIFY
++    if (notify_is_initted()) {
++        notify_uninit();
++    }
++#endif
++}
++
++void LinuxTray::stop() {
++    // Quit GTK main loop safely from any thread
++    g_idle_add([](gpointer) -> gboolean {
++        gtk_main_quit();
++        return G_SOURCE_REMOVE;
++    }, nullptr);
++}
++
++void LinuxTray::set_menu(const Menu& menu) {
++    // We must perform GTK operations on the main thread
++    // However, set_menu might be called before run() (before gtk_main starts)
++    // or during run() (from another thread or signal handler).
++    // To be safe, we should check if we are in the main loop or not?
++    // But initializing widgets before gtk_main is standard.
++    // Modifying them after gtk_main starts should be done via g_idle_add.
++
++    // Simplification: We assume set_menu is called from the main thread OR
++    // we use g_idle_add to do the work if we are already running.
++    // But passing 'menu' reference to g_idle_add is dangerous because it might be destroyed.
++    // For now, we assume this is called safely or we implement a way to copy the menu.
++    // Given TrayApp::refresh_menu logic, it builds a Menu object locally and passes it.
++
++    // CRITICAL: If we are not on the main thread, we cannot touch GTK widgets.
++    // TrayApp calls build_menu (and thus set_menu) from:
++    // 1. run() - before gtk_main (Safe)
++    // 2. signal_monitor_thread_ (Unsafe - background thread)
++    // 3. callbacks (on_change_port etc) - executed in callback context.
++
++    // Wait, callbacks from GTK menu are executed on Main Thread. So that's safe.
++    // But `signal_monitor_thread_` in TrayApp runs on a separate thread and calls refresh_menu.
++    // So `set_menu` WILL be called from a background thread.
++    // We MUST use g_idle_add.
++
++    // We need to copy the menu to pass it to the main thread.
++    // Since Menu contains std::function (callbacks), we can't easily deep copy it if callbacks capture non-copyable things?
++    // std::function is copyable.
++
++    // Let's create a heap copy of the menu and pass it.
++    auto* menu_copy = new Menu(menu);
++
++    g_idle_add([](gpointer data) -> gboolean {
++        auto* params = static_cast<std::pair<LinuxTray*, Menu*>*>(data);
++        LinuxTray* self = params->first;
++        Menu* menu = params->second;
++
++        if (self->gtk_menu_) {
++            gtk_widget_destroy(self->gtk_menu_);
++        }
++
++        self->gtk_menu_ = gtk_menu_new();
++        self->build_gtk_menu(*menu, self->gtk_menu_);
++
++        gtk_widget_show_all(self->gtk_menu_);
++        app_indicator_set_menu(self->indicator_, GTK_MENU(self->gtk_menu_));
++
++        delete menu;
++        delete params;
++        return G_SOURCE_REMOVE;
++    }, new std::pair<LinuxTray*, Menu*>(this, menu_copy));
++}
++
++void LinuxTray::build_gtk_menu(const Menu& menu, GtkWidget* parent_menu) {
++    for (const auto& item : menu.items) {
++        GtkWidget* gtk_item = nullptr;
++
++        if (item.is_separator) {
++            gtk_item = gtk_separator_menu_item_new();
++        } else if (item.submenu) {
++            gtk_item = gtk_menu_item_new_with_label(item.text.c_str());
++            GtkWidget* submenu = gtk_menu_new();
++            build_gtk_menu(*item.submenu, submenu);
++            gtk_menu_item_set_submenu(GTK_MENU_ITEM(gtk_item), submenu);
++        } else {
++            // Checkable items have checked=true/false. Normal items have checked=false.
++            // But TrayInterface doesn't strictly distinguish "Checkable" from "Action".
++            // However, we can check if it's meant to be checkable.
++            // The safest is to use CheckMenuItem if it's checked, or if we want to support it.
++            // For now, if checked is true, we use CheckMenuItem.
++            // If checked is false, we use MenuItem (losing the ability to have an unchecked CheckMenuItem).
++            // To fix this properly, TrayInterface should have a type field.
++            // But looking at TrayApp usage: on_change_port, on_change_context_size use Checkable.
++            // Load Model submenu uses Checkable.
++            // So we definitely need CheckMenuItem support.
++
++            // Heuristic: If we want to support unchecked Checkable items, we'd need to change the interface.
++            // But we can just assume regular items don't need checkmarks.
++            // NOTE: gtk_check_menu_item_new_with_label creates a widget that toggles.
++            // We set it active based on `item.checked`.
++
++            // To support "unchecked checkable item", we are stuck.
++            // BUT, if we use CheckMenuItem for everything, we get a space for checkmark on everything.
++            // Standard GTK menus often align everything.
++            // Let's try to detect if it's a "Checkable" item.
++            // We can't.
++            // But we can use CheckMenuItem if `checked` is true.
++
++            if (item.checked) {
++                gtk_item = gtk_check_menu_item_new_with_label(item.text.c_str());
++                gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_item), TRUE);
++            } else {
++                gtk_item = gtk_menu_item_new_with_label(item.text.c_str());
++            }
++        }
++
++        // Handle enabled state
++        gtk_widget_set_sensitive(gtk_item, item.enabled);
++
++        // Connect signal
++        if (item.callback) {
++            // Copy item to heap for persistence
++            auto* persistent_item = new MenuItem(item);
++            g_object_set_data_full(G_OBJECT(gtk_item), "menu-item-data", persistent_item, [](gpointer data) {
++                delete static_cast<MenuItem*>(data);
++            });
++
++            g_signal_connect(gtk_item, "activate", G_CALLBACK(on_menu_item_activate), persistent_item);
++        }
++
++        gtk_menu_shell_append(GTK_MENU_SHELL(parent_menu), gtk_item);
++    }
++}
++
++void LinuxTray::update_menu() {
++    // No-op, handled by set_menu
++}
++
++void LinuxTray::show_notification(const std::string& title, const std::string& message, NotificationType type) {
++    // This might be called from any thread, so schedule on main thread
++    std::string t = title;
++    std::string m = message;
++
++    g_idle_add([](gpointer data) -> gboolean {
++        auto* params = static_cast<std::pair<std::string, std::string>*>(data);
++
++#ifdef HAVE_LIBNOTIFY
++        NotifyNotification* n = notify_notification_new(params->first.c_str(), params->second.c_str(), nullptr);
++        notify_notification_set_timeout(n, 3000); // 3 seconds
++        notify_notification_show(n, nullptr);
++        g_object_unref(G_OBJECT(n));
++#else
++        std::cout << "[Notification] " << params->first << ": " << params->second << std::endl;
++#endif
++
++        delete params;
++        return G_SOURCE_REMOVE;
++    }, new std::pair<std::string, std::string>(t, m));
++}
++
++void LinuxTray::set_icon(const std::string& icon_path) {
++    // Schedule on main thread
++    std::string path = icon_path;
++    g_idle_add([](gpointer data) -> gboolean {
++        auto* params = static_cast<std::pair<LinuxTray*, std::string>*>(data);
++        LinuxTray* self = params->first;
++        std::string p = params->second;
++
++        if (self->indicator_) {
++            if (p.find("/") != std::string::npos) {
++                // It's an absolute path — extract icon name (strip directory and extension)
++                std::string filename = p.substr(p.find_last_of("/") + 1);
++                size_t lastdot = filename.find_last_of(".");
++                std::string name_no_ext = (lastdot == std::string::npos) ? filename : filename.substr(0, lastdot);
++
++                if (p.find("/icons/hicolor/") != std::string::npos) {
++                    // Icon is in the system hicolor theme — the theme root is already in the
++                    // AppIndicator/SNI search path, so just use the icon name directly.
++                    app_indicator_set_icon(self->indicator_, name_no_ext.c_str());
++                } else {
++                    // Custom path (e.g. development build): set the containing directory as an
++                    // extra icon theme path. AppIndicator3 expects this to be the root of an XDG
++                    // icon theme (with scalable/apps/ subdirs), so plain files may not resolve,
++                    // but it is the best-effort fallback without restructuring the files.
++                    std::string dir = p.substr(0, p.find_last_of("/"));
++                    app_indicator_set_icon_theme_path(self->indicator_, dir.c_str());
++                    app_indicator_set_icon(self->indicator_, name_no_ext.c_str());
++                }
++            } else if (!p.empty()) {
++                // Bare icon name — look it up via the system icon theme directly
++                app_indicator_set_icon(self->indicator_, p.c_str());
++            }
++        }
++
++        delete params;
++        return G_SOURCE_REMOVE;
++    }, new std::pair<LinuxTray*, std::string>(this, path));
++}
++
++void LinuxTray::set_tooltip(const std::string& tooltip) {
++    // AppIndicator doesn't support tooltip nicely
++}
++
++void LinuxTray::set_ready_callback(std::function<void()> callback) {
++    ready_callback_ = callback;
++}
++
++void LinuxTray::set_log_level(const std::string& log_level) {
++    log_level_ = log_level;
++}
++
++#else
++
++// --- Stub Implementation ---
++
+ LinuxTray::LinuxTray()
+     : should_exit_(false)
+     , log_level_("info")
+@@ -100,6 +389,8 @@ void LinuxTray::set_log_level(const std::string& log_level) {
+     log_level_ = log_level;
+ }
+ 
++#endif
++
+ } // namespace lemon_tray
+ 
+ #endif // __linux__ && !__ANDROID__
+diff --git a/src/cpp/tray/tray_app.cpp b/src/cpp/tray/tray_app.cpp
+index 845573d3..01811bb9 100644
+--- a/src/cpp/tray/tray_app.cpp
++++ b/src/cpp/tray/tray_app.cpp
+@@ -832,19 +832,80 @@ int TrayApp::run() {
+     } else {
+         DEBUG_LOG(this, "Icon found at: " << icon_path);
+     }
++#elif defined(__linux__)
++    // On Linux, search XDG data directories for the installed icon first.
++    // The SVG in the hicolor icon theme is the preferred format for AppIndicator3.
++    {
++        std::vector<std::string> data_dirs;
++        // XDG_DATA_HOME takes priority (defaults to ~/.local/share)
++        const char* xdg_data_home = getenv("XDG_DATA_HOME");
++        if (xdg_data_home && xdg_data_home[0]) {
++            data_dirs.push_back(xdg_data_home);
++        } else {
++            const char* home = getenv("HOME");
++            if (home && home[0]) data_dirs.push_back(std::string(home) + "/.local/share");
++        }
++        // Then XDG_DATA_DIRS (system-wide locations)
++        const char* xdg_data_dirs = getenv("XDG_DATA_DIRS");
++        if (xdg_data_dirs && xdg_data_dirs[0]) {
++            std::istringstream ss(xdg_data_dirs);
++            std::string d;
++            while (std::getline(ss, d, ':')) {
++                if (!d.empty()) data_dirs.push_back(d);
++            }
++        } else {
++            data_dirs.push_back("/usr/local/share");
++            data_dirs.push_back("/usr/share");
++        }
++        for (const auto& d : data_dirs) {
++            // Preferred: SVG in the hicolor icon theme (installed by RPM/DEB)
++            auto svg = fs::path(d) / "icons/hicolor/scalable/apps/lemonade.svg";
++            if (fs::exists(svg)) {
++                icon_path = svg.string();
++                DEBUG_LOG(this, "Icon found in hicolor theme: " << icon_path);
++                break;
++            }
++            // Fallback: favicon.ico in the lemonade-server share directory
++            auto ico = fs::path(d) / "lemonade-server/resources/static/favicon.ico";
++            if (fs::exists(ico)) {
++                icon_path = ico.string();
++                DEBUG_LOG(this, "Icon found in share dir: " << icon_path);
++                break;
++            }
++        }
++    }
++
++    if (icon_path.empty()) {
++        // Development build: try relative to CWD and executable directory
++        fs::path exe_path = fs::path(server_binary_).parent_path();
++        std::vector<fs::path> dev_paths = {
++            "resources/static/favicon.ico",
++            exe_path / "resources" / "static" / "favicon.ico",
++            exe_path / "resources" / "favicon.ico",
++        };
++        for (const auto& p : dev_paths) {
++            if (fs::exists(p)) {
++                icon_path = p.string();
++                DEBUG_LOG(this, "Icon found (dev path): " << icon_path);
++                break;
++            }
++        }
++    }
++
++    if (icon_path.empty()) {
++        std::cout << "WARNING: Icon not found at any location, will use default icon" << std::endl;
++    }
+ #else
+-    // On other platforms, find icon file path
++    // On Windows and other platforms, find icon file path
+     icon_path = "resources/static/favicon.ico";
+     DEBUG_LOG(this, "Checking icon at: " << fs::absolute(icon_path).string());
+ 
+-
+     if (!fs::exists(icon_path)) {
+         // Try relative to executable directory
+         fs::path exe_path = fs::path(server_binary_).parent_path();
+         icon_path = (exe_path / "resources" / "static" / "favicon.ico").string();
+         DEBUG_LOG(this, "Icon not found, trying: " << icon_path);
+ 
+-
+         // If still not found, try without static subdir (fallback)
+         if (!fs::exists(icon_path)) {
+             icon_path = (exe_path / "resources" / "favicon.ico").string();
+@@ -852,7 +913,6 @@ int TrayApp::run() {
+         }
+     }
+ 
+-
+     if (fs::exists(icon_path)) {
+         DEBUG_LOG(this, "Icon found at: " << icon_path);
+     } else {
