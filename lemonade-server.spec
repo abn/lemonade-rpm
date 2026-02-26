@@ -1,6 +1,6 @@
 Name:           lemonade-server
 Version:        9.3.4
-Release:        1%{?dist}
+Release:        1
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
