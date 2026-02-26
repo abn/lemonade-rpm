@@ -96,14 +96,23 @@ install -Dpm 0644 src/app/assets/logo.svg \
 install -Dpm 0755 data/launch-lemonade-web-app.sh \
     %{buildroot}%{_bindir}/lemonade-web
 
-# --- Desktop entry ---
-# Single lemonade.desktop for the Electron desktop app (app subpackage).
+# --- Desktop entries ---
+# lemonade.desktop: Electron desktop app (app subpackage)
 desktop-file-install \
     --dir=%{buildroot}%{_datadir}/applications \
     --set-icon=lemonade \
     data/lemonade-app.desktop
 mv %{buildroot}%{_datadir}/applications/lemonade-app.desktop \
    %{buildroot}%{_datadir}/applications/lemonade.desktop
+
+# lemonade-web.desktop: web interface launcher (base package)
+desktop-file-install \
+    --dir=%{buildroot}%{_datadir}/applications \
+    --set-key=Exec --set-value=lemonade-web \
+    --set-icon=lemonade \
+    data/lemonade-web-app.desktop
+mv %{buildroot}%{_datadir}/applications/lemonade-web-app.desktop \
+   %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 
 # --- AppStream metadata ---
 install -Dpm 0644 /dev/stdin \
@@ -122,9 +131,11 @@ install -Dpm 0644 /dev/stdin \
     </p>
   </description>
   <launchable type="desktop-id">lemonade.desktop</launchable>
+  <launchable type="desktop-id">lemonade-web.desktop</launchable>
   <url type="homepage">https://lemonade-server.ai/</url>
   <provides>
     <binary>lemonade-server</binary>
+    <binary>lemonade-web</binary>
   </provides>
 </component>
 EOF
@@ -182,6 +193,7 @@ chmod 0750 %{_sharedstatedir}/lemonade
 cd lemonade
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 
 %files
 %license lemonade/LICENSE
@@ -191,6 +203,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
 %{_bindir}/lemonade-web
 %{_datadir}/lemonade-server/
 %{_datadir}/icons/hicolor/scalable/apps/lemonade.svg
+%{_datadir}/applications/lemonade-web.desktop
 %dir %{_sysconfdir}/lemonade
 %config(noreplace) %{_sysconfdir}/lemonade/lemonade.conf
 %config(noreplace) %{_sysconfdir}/lemonade/secrets.conf
