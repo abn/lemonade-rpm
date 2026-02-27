@@ -7,6 +7,7 @@ URL:            https://lemonade-server.ai/
 Source0:        lemonade-server-%{version}.tar.gz
 Patch0:         001-linux-tray.patch
 Patch1:         002-rename-app.patch
+Patch2:         003-fix-terminal-call.patch
 
 %define debug_package %{nil}
 
@@ -66,6 +67,7 @@ Lemonade LLM server.
 cd lemonade
 %patch -P 0 -p1
 %patch -P 1 -p1
+%patch -P 2 -p1
 # Fix httplib detection and linking on Fedora (where it is header-only and has no .pc file)
 sed -i 's/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_FOUND})/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_INCLUDE_DIRS})/' CMakeLists.txt
 sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' CMakeLists.txt src/cpp/tray/CMakeLists.txt
