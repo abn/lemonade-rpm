@@ -137,13 +137,22 @@ install -Dpm 0644 /dev/stdin \
   <provides>
     <binary>lemonade-server</binary>
     <binary>lemonade-web</binary>
+    <binary>lemonade-app</binary>
   </provides>
 </component>
 EOF
 
 # --- Electron app ---
+# electron-builder names the binary after productName (lowercased) = "lemonade"
 mkdir -p %{buildroot}%{_libdir}/lemonade-app
 cp -r src/app/dist-app/linux-unpacked/* %{buildroot}%{_libdir}/lemonade-app/
+
+# Wrapper script so lemonade-app is findable in PATH (required by lemonade.desktop Exec=lemonade-app)
+install -Dpm 0755 /dev/stdin \
+    %{buildroot}%{_bindir}/lemonade-app << 'EOF'
+#!/bin/sh
+exec %{_libdir}/lemonade-app/lemonade "$@"
+EOF
 
 # --- User systemd unit (tray) ---
 # Runs lemonade-server in tray mode for graphical user sessions.
@@ -213,6 +222,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %dir %{_sharedstatedir}/lemonade
 
 %files app
+%{_bindir}/lemonade-app
 %{_libdir}/lemonade-app/
 %{_datadir}/applications/lemonade.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
