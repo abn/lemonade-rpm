@@ -1,11 +1,12 @@
-Name:           lemonade-server
+Name:           lemonade
 Version:        9.3.4
 Release:        1
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
-Source0:        %{name}-%{version}.tar.gz
-Patch0:         linux-tray.patch
+Source0:        lemonade-server-%{version}.tar.gz
+Patch0:         001-linux-tray.patch
+Patch1:         002-rename-app.patch
 
 %define debug_package %{nil}
 
@@ -29,19 +30,29 @@ BuildRequires:  libnotify-devel
 BuildRequires:  nodejs
 BuildRequires:  npm
 
-# Required to create the lemonade system user in %pre
-Requires(pre):  shadow-utils
+Requires:       %{name}-server = %{version}-%{release}
+Requires:       %{name}-app = %{version}-%{release}
 
 %description
 Lemonade is a lightweight, high-performance local LLM server with support for
 multiple backends including llama.cpp, FastFlowLM, and RyzenAI.
 
-It includes a system tray application for easy management and a built-in web
-interface accessible at http://localhost:8000/.
+This package is a meta-package that installs both the Lemonade server and the
+desktop application.
+
+%package server
+Summary:        Server components for Lemonade
+# Required to create the lemonade system user in %pre
+Requires(pre):  shadow-utils
+%{?systemd_requires}
+
+%description server
+The Lemonade server subpackage contains the core LLM server, the system tray
+management application, and the web interface.
 
 %package app
 Summary:        Desktop application for Lemonade
-Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       %{name}-server%{?_isa} = %{version}-%{release}
 # Fedora usually bundles Electron or uses a system-wide one;
 # this spec assumes an Electron-based build.
 Requires:       electron
@@ -51,9 +62,10 @@ A modern desktop interface for managing and interacting with the
 Lemonade LLM server.
 
 %prep
-%autosetup -N -n %{name}-%{version}
+%autosetup -N -n lemonade-server-%{version}
 cd lemonade
 %patch -P 0 -p1
+%patch -P 1 -p1
 # Fix httplib detection and linking on Fedora (where it is header-only and has no .pc file)
 sed -i 's/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_FOUND})/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_INCLUDE_DIRS})/' CMakeLists.txt
 sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' CMakeLists.txt src/cpp/tray/CMakeLists.txt
@@ -180,23 +192,23 @@ EOF
 # /var/lib/lemonade is WorkingDirectory and ReadWritePaths for the service unit.
 install -dm 0750 %{buildroot}%{_sharedstatedir}/lemonade
 
-%pre
+%pre server
 # Create the lemonade system group and user if they do not already exist.
 getent group lemonade >/dev/null || groupadd -r lemonade
 getent passwd lemonade >/dev/null || \
     useradd -r -g lemonade -d %{_sharedstatedir}/lemonade \
             -s /sbin/nologin -c "Lemonade Server" lemonade
 
-%post
+%post server
 %systemd_post lemonade-server.service
 # Set ownership of the working directory now that the lemonade user exists.
 chown lemonade:lemonade %{_sharedstatedir}/lemonade
 chmod 0750 %{_sharedstatedir}/lemonade
 
-%preun
+%preun server
 %systemd_preun lemonade-server.service
 
-%postun
+%postun server
 %systemd_postun_with_restart lemonade-server.service
 
 %check
@@ -206,6 +218,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 
 %files
+
+%files server
 %license lemonade/LICENSE
 %doc lemonade/README.md
 %{_bindir}/lemonade-router
@@ -229,4 +243,4 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 
 %changelog
 * Thu Feb 26 2026 Arun Neelicattu <arun.neelicattu@gmail.com> - 9.3.4-1
-- Initial package for Fedora
+Initial package source
