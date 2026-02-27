@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        9.3.4
-Release:        1
+Release:        2
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -245,5 +245,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
 
 %changelog
+* Fri Feb 27 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 9.3.4-2
+- new package built with tito
+
 * Thu Feb 26 2026 Arun Neelicattu <arun.neelicattu@gmail.com> - 9.3.4-1
 Initial package source
