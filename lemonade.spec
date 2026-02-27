@@ -178,7 +178,6 @@ Description=Lemonade Server (System Tray)
 Documentation=https://lemonade-server.ai/
 After=graphical-session.target
 PartOf=graphical-session.target
-Requires=lemonade-server.service
 
 [Service]
 Type=simple

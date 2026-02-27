@@ -55,7 +55,7 @@ sudo systemctl enable lemonade-server
 
 ### System Tray (Desktop Users)
 
-For a graphical interface in your system tray, you can enable the user-level tray service. This service will automatically ensure the core `lemonade-server` is running:
+For a graphical interface in your system tray, you can enable the user-level tray service. **Note:** The core `lemonade-server` system service **must** be running for the tray to start successfully:
 
 ```bash
 # Enable and start the tray for the current user
