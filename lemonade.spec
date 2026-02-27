@@ -178,10 +178,11 @@ Description=Lemonade Server (System Tray)
 Documentation=https://lemonade-server.ai/
 After=graphical-session.target
 PartOf=graphical-session.target
+Requires=lemonade-server.service
 
 [Service]
 Type=simple
-ExecStart=%{_bindir}/lemonade-server serve
+ExecStart=%{_bindir}/lemonade-server tray
 Restart=on-failure
 RestartSec=5s
 KillSignal=SIGINT
