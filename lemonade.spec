@@ -63,7 +63,7 @@ A modern desktop interface for managing and interacting with the
 Lemonade LLM server.
 
 %prep
-%autosetup -N -n lemonade-server-%{version}
+%autosetup -N -n %{name}-%{version}
 cd lemonade
 %patch -P 0 -p1
 %patch -P 1 -p1
