@@ -4,7 +4,7 @@ Release:        3
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
-Source0:        lemonade-server-%{version}.tar.gz
+Source0:        lemonade-%{version}.tar.gz
 Patch0:         001-linux-tray.patch
 Patch1:         002-rename-app.patch
 Patch2:         003-fix-terminal-call.patch
