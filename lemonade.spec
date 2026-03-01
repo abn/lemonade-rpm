@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        9.4.1
-Release:        0
+Release:        1
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -246,6 +246,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
 
 %changelog
+* Sun Mar 01 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 9.4.1-1
+- update lemonade submodule to v9.4.1 (arun.neelicattu@gmail.com)
+
 * Fri Feb 27 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 9.3.4-6
 - fix: tray systemd unit cannot depend on lemonade-server
   (arun.neelicattu@gmail.com)
