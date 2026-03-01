@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        9.4.1
-Release:        1
+Release:        2
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -14,6 +14,7 @@ Patch2:         003-fix-terminal-call.patch
 BuildRequires:  cmake
 BuildRequires:  ninja-build
 BuildRequires:  gcc-c++
+BuildRequires:  git
 BuildRequires:  libcurl-devel
 BuildRequires:  libzstd-devel
 BuildRequires:  nlohmann-json-devel >= 3.11.3
@@ -246,6 +247,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
 
 %changelog
+* Sun Mar 01 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 9.4.1-2
+- 
+
 * Sun Mar 01 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 9.4.1-1
 - update lemonade submodule to v9.4.1 (arun.neelicattu@gmail.com)
 
