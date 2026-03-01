@@ -1,6 +1,6 @@
 Name:           lemonade
-Version:        9.3.4
-Release:        6
+Version:        9.4.1
+Release:        0
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -73,6 +73,8 @@ sed -i 's/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_FOUND})/set(USE_SYSTEM_HTTPLIB ${HTTP
 sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' CMakeLists.txt src/cpp/tray/CMakeLists.txt
 # Ensure httplib::httplib target is defined via find_package
 sed -i '/include(GNUInstallDirs)/a find_package(httplib REQUIRED)' CMakeLists.txt
+# FetchContent is always needed on Linux (for ixwebsocket), even when all other deps are system packages
+sed -i '/include(GNUInstallDirs)/a include(FetchContent)' CMakeLists.txt
 # System service runs headless; tray is for user sessions only
 sed -i 's|lemonade-server serve$|lemonade-server serve --no-tray|' data/lemonade-server.service.in
 
@@ -108,7 +110,7 @@ install -Dpm 0644 src/app/assets/logo.svg \
 
 # --- Web app launcher ---
 # Shell script that opens the built-in web interface in the user's browser.
-install -Dpm 0755 data/launch-lemonade-web-app.sh \
+install -Dpm 0755 data/lemonade-web-app \
     %{buildroot}%{_bindir}/lemonade-web
 
 # --- Desktop entries ---
