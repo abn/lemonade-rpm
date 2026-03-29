@@ -33,6 +33,10 @@ You can also install the components independently:
 # Install only the server (headless)
 sudo dnf install lemonade-server
 
+# Install only the system tray (lightweight GTK interface, no Electron required)
+# Note: This will automatically pull in lemonade-server as a dependency
+sudo dnf install lemonade-tray
+
 # Install only the desktop application
 # Note: This will automatically pull in lemonade-server as a dependency
 sudo dnf copr enable sergiomb/electrons
@@ -55,9 +59,12 @@ sudo systemctl enable lemonade-server
 
 ### System Tray (Desktop Users)
 
-For a graphical interface in your system tray, you can enable the user-level tray service. **Note:** The core `lemonade-server` system service **must** be running for the tray to start successfully:
+For a graphical interface in your system tray, install the `lemonade-tray` package and enable the user-level service. **Note:** The core `lemonade-server` system service **must** be running for the tray to start successfully:
 
 ```bash
+# Install the tray package (if not already installed)
+sudo dnf install lemonade-tray
+
 # Enable and start the tray for the current user
 systemctl --user enable --now lemonade-tray
 ```
