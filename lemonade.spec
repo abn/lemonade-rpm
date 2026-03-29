@@ -1,36 +1,42 @@
 Name:           lemonade
-Version:        9.4.1
-Release:        2
+Version:        10.0.1
+Release:        0
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
-Source0:        lemonade-%{version}.tar.gz
-Patch0:         001-linux-tray.patch
-Patch1:         002-rename-app.patch
-Patch2:         003-fix-terminal-call.patch
+Source0:        https://github.com/lemonade-sdk/%{name}/archive/refs/tags/v%{version}/%{name}-%{version}.tar.gz
 
 %define debug_package %{nil}
 
+# C++ build toolchain (server + tray)
 BuildRequires:  cmake
 BuildRequires:  ninja-build
 BuildRequires:  gcc-c++
 BuildRequires:  git
+
+# lemonade-server
+BuildRequires:  systemd-rpm-macros
+BuildRequires:  systemd-devel
 BuildRequires:  libcurl-devel
 BuildRequires:  libzstd-devel
+BuildRequires:  libwebsockets-devel
+BuildRequires:  libdrm-devel
 BuildRequires:  nlohmann-json-devel >= 3.11.3
 BuildRequires:  cli11-devel >= 2.4.2
 BuildRequires:  cpp-httplib-devel >= 0.26.0
-BuildRequires:  desktop-file-utils
-BuildRequires:  libappstream-glib
-BuildRequires:  systemd-rpm-macros
-BuildRequires:  systemd-devel
+
+# lemonade-tray
 BuildRequires:  gtk3-devel
 BuildRequires:  libappindicator-gtk3-devel
 BuildRequires:  libnotify-devel
 
-# For the app subpackage
+# lemonade-app
 BuildRequires:  nodejs
 BuildRequires:  npm
+
+# packaging validation
+BuildRequires:  desktop-file-utils
+BuildRequires:  libappstream-glib
 
 Requires:       %{name}-server = %{version}-%{release}
 Requires:       %{name}-app = %{version}-%{release}
@@ -44,13 +50,28 @@ desktop application.
 
 %package server
 Summary:        Server components for Lemonade
+Provides:       lemonade-cli = %{version}-%{release}
+Provides:       lemonade-router = %{version}-%{release}
+Provides:       lemonade-web = %{version}-%{release}
 # Required to create the lemonade system user in %pre
 Requires(pre):  shadow-utils
 %{?systemd_requires}
+# lemonade-web falls back to xdg-open when no Chromium browser is found
+Requires:       xdg-utils
+# owns /usr/share/icons/hicolor/ tree where the app icon is installed
+Requires:       hicolor-icon-theme
 
 %description server
-The Lemonade server subpackage contains the core LLM server, the system tray
-management application, and the web interface.
+The Lemonade server subpackage contains the core LLM server and web interface.
+
+%package tray
+Summary:        System tray application for Lemonade
+Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+%{?systemd_user_requires}
+
+%description tray
+Provides the lemonade-tray GUI application and a user systemd service for
+running the Lemonade server in the system tray during graphical sessions.
 
 %package app
 Summary:        Desktop application for Lemonade
@@ -64,23 +85,18 @@ A modern desktop interface for managing and interacting with the
 Lemonade LLM server.
 
 %prep
-%autosetup -N -n %{name}-%{version}
-cd lemonade
-%patch -P 0 -p1
-%patch -P 1 -p1
-%patch -P 2 -p1
+%autosetup -n %{name}-%{version}
 # Fix httplib detection and linking on Fedora (where it is header-only and has no .pc file)
 sed -i 's/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_FOUND})/set(USE_SYSTEM_HTTPLIB ${HTTPLIB_INCLUDE_DIRS})/' CMakeLists.txt
-sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' CMakeLists.txt src/cpp/tray/CMakeLists.txt
+find . -name 'CMakeLists.txt' -exec sed -i 's/PRIVATE cpp-httplib/PRIVATE httplib::httplib/g' {} +
 # Ensure httplib::httplib target is defined via find_package
 sed -i '/include(GNUInstallDirs)/a find_package(httplib REQUIRED)' CMakeLists.txt
-# FetchContent is always needed on Linux (for ixwebsocket), even when all other deps are system packages
+# FetchContent is always needed on Linux, even when all other deps are system packages
 sed -i '/include(GNUInstallDirs)/a include(FetchContent)' CMakeLists.txt
 # System service runs headless; tray is for user sessions only
 sed -i 's|lemonade-server serve$|lemonade-server serve --no-tray|' data/lemonade-server.service.in
 
 %build
-cd lemonade
 # Build the server components
 %cmake -G Ninja \
     -DBUILD_WEB_APP=OFF \
@@ -88,18 +104,18 @@ cd lemonade
     -DUSE_SYSTEM_JSON=ON \
     -DUSE_SYSTEM_CLI11=ON \
     -DUSE_SYSTEM_HTTPLIB=ON \
-    -DENABLE_LINUX_TRAY=ON
+    -DREQUIRE_LINUX_TRAY=ON
 %cmake_build
 
 # Build the Electron app
 cd src/app
 # Note: Fedora builds are offline. In a production Koji/Mock build,
-# you would provide a pre-bundled node_modules tarball.
-npm install --offline || npm install
+# you would provide a pre-bundled node_modules tarball and use --offline.
+npm config set audit false
+npm install
 npm run build:linux
 
 %install
-cd lemonade
 %cmake_install
 
 # --- Icons ---
@@ -216,8 +232,16 @@ chmod 0750 %{_sharedstatedir}/lemonade
 %postun server
 %systemd_postun_with_restart lemonade-server.service
 
+%post tray
+%systemd_user_post lemonade-tray.service
+
+%preun tray
+%systemd_user_preun lemonade-tray.service
+
+%postun tray
+%systemd_user_postun_with_restart lemonade-tray.service
+
 %check
-cd lemonade
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
@@ -225,20 +249,28 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %files
 
 %files server
-%license lemonade/LICENSE
-%doc lemonade/README.md
+%license LICENSE
+%doc README.md
+%{_bindir}/lemonade
 %{_bindir}/lemonade-router
 %{_bindir}/lemonade-server
 %{_bindir}/lemonade-web
+%{_mandir}/man1/lemonade.1*
+%{_mandir}/man1/lemonade-router.1*
+%{_mandir}/man1/lemonade-server.1*
 %{_datadir}/lemonade-server/
 %{_datadir}/icons/hicolor/scalable/apps/lemonade.svg
 %{_datadir}/applications/lemonade-web.desktop
 %dir %{_sysconfdir}/lemonade
 %config(noreplace) %{_sysconfdir}/lemonade/lemonade.conf
-%config(noreplace) %{_sysconfdir}/lemonade/secrets.conf
+%dir %{_sysconfdir}/lemonade/conf.d
+%config(noreplace) %{_sysconfdir}/lemonade/conf.d/zz-secrets.conf
 %{_unitdir}/lemonade-server.service
-%{_userunitdir}/lemonade-tray.service
 %dir %{_sharedstatedir}/lemonade
+
+%files tray
+%{_bindir}/lemonade-tray
+%{_userunitdir}/lemonade-tray.service
 
 %files app
 %{_bindir}/lemonade-app
