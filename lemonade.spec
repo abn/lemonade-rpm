@@ -260,8 +260,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %files
 
 %files server
-%license LICENSE
-%doc README.md
+%license %{upstream}/LICENSE
+%doc %{upstream}/README.md
 %{_bindir}/lemonade
 %{_bindir}/lemonade-router
 %{_bindir}/lemonade-server
