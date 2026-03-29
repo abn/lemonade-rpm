@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.0.1
-Release:        1
+Release:        2
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -279,6 +279,13 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
 
 %changelog
+* Mon Mar 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.0.1-2
+- fix(tito): use correct builder (arun.neelicattu@gmail.com)
+- fix: lemonade-tray.service should use lemonade-tray binary
+  (arun.neelicattu@gmail.com)
+- docs: document lemonade-tray as a standalone install option
+  (arun.neelicattu@gmail.com)
+
 * Mon Mar 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.0.1-1
 - spec: update to 10.0.1 (arun.neelicattu@gmail.com)
 - Automatic commit of package [lemonade] minor release [9.4.1-2].
