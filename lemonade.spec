@@ -125,7 +125,9 @@ npm run build:linux
 popd
 
 %install
+pushd %{upstream}
 %cmake_install
+popd
 
 # --- Icons ---
 # Install the application icon into the hicolor theme.
