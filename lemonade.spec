@@ -188,7 +188,7 @@ exec %{_libdir}/lemonade-app/lemonade "$@"
 EOF
 
 # --- User systemd unit (tray) ---
-# Runs lemonade-server in tray mode for graphical user sessions.
+# Runs lemonade-tray for graphical user sessions.
 # Users can enable it with: systemctl --user enable --now lemonade-tray.service
 install -Dpm 0644 /dev/stdin \
     %{buildroot}%{_userunitdir}/lemonade-tray.service << 'EOF'
@@ -200,7 +200,7 @@ PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=%{_bindir}/lemonade-server tray
+ExecStart=%{_bindir}/lemonade-tray
 Restart=on-failure
 RestartSec=5s
 KillSignal=SIGINT
