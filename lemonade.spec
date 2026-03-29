@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.0.1
-Release:        2
+Release:        3
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -288,6 +288,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
 
 %changelog
+* Mon Mar 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.0.1-3
+- fix: vendor upstream source via submodule for COPR compatibility
+  (arun.neelicattu@gmail.com)
+
 * Mon Mar 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.0.1-2
 - fix(tito): use correct builder (arun.neelicattu@gmail.com)
 - fix: lemonade-tray.service should use lemonade-tray binary
