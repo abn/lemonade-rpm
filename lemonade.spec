@@ -1,6 +1,6 @@
 Name:           lemonade
-Version:        10.0.1
-Release:        5
+Version:        10.1.0
+Release:        0
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -54,8 +54,8 @@ desktop application.
 %package server
 Summary:        Server components for Lemonade
 Provides:       lemonade-cli = %{version}-%{release}
-Provides:       lemonade-router = %{version}-%{release}
 Provides:       lemonade-web = %{version}-%{release}
+Provides:       lemond = %{version}-%{release}
 # Required to create the lemonade system user in %pre
 Requires(pre):  shadow-utils
 %{?systemd_requires}
@@ -263,12 +263,12 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %license %{upstream}/LICENSE
 %doc %{upstream}/README.md
 %{_bindir}/lemonade
-%{_bindir}/lemonade-router
 %{_bindir}/lemonade-server
 %{_bindir}/lemonade-web
+%{_bindir}/lemond
 %{_mandir}/man1/lemonade.1*
-%{_mandir}/man1/lemonade-router.1*
 %{_mandir}/man1/lemonade-server.1*
+%{_mandir}/man1/lemond.1*
 %{_datadir}/lemonade-server/
 %{_datadir}/icons/hicolor/scalable/apps/lemonade.svg
 %{_datadir}/applications/lemonade-web.desktop
