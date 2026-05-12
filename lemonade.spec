@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.3.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -275,6 +275,16 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Wed May 13 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-2
+- spec: add upgrade migration for package rename and service rename
+  (arun.neelicattu@gmail.com)
+- docs: update README for v10.3.0 packaging (arun.neelicattu@gmail.com)
+
+* Wed May 13 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com>
+- spec: add upgrade migration for package rename and service rename
+  (arun.neelicattu@gmail.com)
+- docs: update README for v10.3.0 packaging (arun.neelicattu@gmail.com)
+
 * Tue May 12 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-1
 - chore: add .gitignore for build artifacts (arun.neelicattu@gmail.com)
 - spec: packaging overhaul for v10.3.0 Tauri migration
