@@ -34,7 +34,7 @@ BuildRequires:  gtk3-devel
 BuildRequires:  libappindicator-gtk3-devel
 BuildRequires:  libnotify-devel
 
-# lemonade-app (Tauri)
+# lemonade-desktop (Tauri)
 BuildRequires:  nodejs
 BuildRequires:  npm
 BuildRequires:  rust
@@ -49,7 +49,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 
 Requires:       %{name}-server = %{version}-%{release}
-Requires:       %{name}-app = %{version}-%{release}
+Requires:       %{name}-desktop = %{version}-%{release}
 
 %description
 Lemonade is a lightweight, high-performance local LLM server with support for
@@ -61,13 +61,10 @@ desktop application.
 %package server
 Summary:        Server components for Lemonade
 Provides:       lemonade-cli = %{version}-%{release}
-Provides:       lemonade-web = %{version}-%{release}
 Provides:       lemond = %{version}-%{release}
 # Required to create the lemonade system user in %pre
 Requires(pre):  shadow-utils
 %{?systemd_requires}
-# lemonade-web falls back to xdg-open when no Chromium browser is found
-Requires:       xdg-utils
 # owns /usr/share/icons/hicolor/ tree where the app icon is installed
 Requires:       hicolor-icon-theme
 
@@ -77,19 +74,27 @@ The Lemonade server subpackage contains the core LLM server and web interface.
 %package tray
 Summary:        System tray application for Lemonade
 Requires:       %{name}-server%{?_isa} = %{version}-%{release}
-%{?systemd_user_requires}
 
 %description tray
-Provides the lemonade-tray GUI application and a user systemd service for
-running the Lemonade server in the system tray during graphical sessions.
+Provides the lemonade-tray system tray application. Users can configure it
+to start at login via their desktop environment's autostart settings.
 
-%package app
+%package desktop
 Summary:        Desktop application for Lemonade
 Requires:       %{name}-server%{?_isa} = %{version}-%{release}
 
-%description app
+%description desktop
 A modern desktop interface for managing and interacting with the
 Lemonade LLM server.
+
+%package web
+Summary:        Web browser launcher for Lemonade
+Requires:       %{name}-server = %{version}-%{release}
+Requires:       xdg-utils
+
+%description web
+Provides the lemonade-web launcher script and desktop entry for opening
+the Lemonade web interface in a browser.
 
 %prep
 %autosetup -n %{name}-%{version}
@@ -101,19 +106,17 @@ popd
 # Configure from within the upstream source subdirectory (%{upstream}/)
 pushd %{upstream}
 %cmake -G Ninja \
-    -DBUILD_WEB_APP=OFF \
     -DBUILD_ELECTRON_APP=OFF \
     -DBUILD_TAURI_APP=OFF \
     -DUSE_SYSTEM_JSON=ON \
     -DUSE_SYSTEM_CLI11=ON \
     -DUSE_SYSTEM_HTTPLIB=ON \
+    -DUSE_SYSTEM_NODEJS_MODULES=OFF \
     -DREQUIRE_LINUX_TRAY=ON
 %cmake_build
 popd
 
 # Build the Tauri app
-# Note: Fedora builds are offline. In a production Koji/Mock build,
-# you would provide a pre-bundled node_modules tarball and use --offline.
 pushd %{upstream}/src/app
 npm config set audit false
 npm install
@@ -127,10 +130,9 @@ popd
 
 # --- Icons ---
 # Install the application icon into the hicolor theme.
-# Named "lemonade" so it is referenced consistently by the desktop entries
-# and resolved automatically by the system tray (AppIndicator3/SNI).
+# Use the reverse-DNS name the tray binary looks up at runtime via find_icon_path().
 install -Dpm 0644 %{upstream}/src/app/assets/logo.svg \
-    %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/lemonade.svg
+    %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/ai.lemonade_server.Lemonade.svg
 
 # --- Web app launcher ---
 # Shell script that opens the built-in web interface in the user's browser.
@@ -138,10 +140,11 @@ install -Dpm 0755 %{upstream}/data/lemonade-web-app \
     %{buildroot}%{_bindir}/lemonade-web
 
 # --- Desktop entries ---
-# lemonade.desktop: Electron desktop app (app subpackage)
+# lemonade.desktop: Tauri desktop app (desktop subpackage)
 desktop-file-install \
     --dir=%{buildroot}%{_datadir}/applications \
-    --set-icon=lemonade \
+    --set-icon=ai.lemonade_server.Lemonade \
+    --set-name="Lemonade Desktop" \
     %{upstream}/data/lemonade-app.desktop
 mv %{buildroot}%{_datadir}/applications/lemonade-app.desktop \
    %{buildroot}%{_datadir}/applications/lemonade.desktop
@@ -150,7 +153,7 @@ mv %{buildroot}%{_datadir}/applications/lemonade-app.desktop \
 desktop-file-install \
     --dir=%{buildroot}%{_datadir}/applications \
     --set-key=Exec --set-value=lemonade-web \
-    --set-icon=lemonade \
+    --set-icon=ai.lemonade_server.Lemonade \
     %{upstream}/data/lemonade-web-app.desktop
 mv %{buildroot}%{_datadir}/applications/lemonade-web-app.desktop \
    %{buildroot}%{_datadir}/applications/lemonade-web.desktop
@@ -172,11 +175,9 @@ install -Dpm 0644 /dev/stdin \
     </p>
   </description>
   <launchable type="desktop-id">lemonade.desktop</launchable>
-  <launchable type="desktop-id">lemonade-web.desktop</launchable>
   <url type="homepage">https://lemonade-server.ai/</url>
   <provides>
     <binary>lemonade-server</binary>
-    <binary>lemonade-web</binary>
     <binary>lemonade-app</binary>
   </provides>
 </component>
@@ -187,26 +188,19 @@ EOF
 install -Dpm 0755 %{upstream}/src/app/src-tauri/target/release/lemonade-app \
     %{buildroot}%{_bindir}/lemonade-app
 
-# --- User systemd unit (tray) ---
-# Runs lemonade-tray for graphical user sessions.
-# Users can enable it with: systemctl --user enable --now lemonade-tray.service
+# --- Tray desktop entry ---
+# No upstream .desktop file for lemonade-tray; write it inline.
+# Users can configure lemonade-tray to start at login via their DE's autostart UI.
 install -Dpm 0644 /dev/stdin \
-    %{buildroot}%{_userunitdir}/lemonade-tray.service << 'EOF'
-[Unit]
-Description=Lemonade Server (System Tray)
-Documentation=https://lemonade-server.ai/
-After=graphical-session.target
-PartOf=graphical-session.target
-
-[Service]
-Type=simple
-ExecStart=%{_bindir}/lemonade-tray
-Restart=on-failure
-RestartSec=5s
-KillSignal=SIGINT
-
-[Install]
-WantedBy=graphical-session.target
+    %{buildroot}%{_datadir}/applications/lemonade-tray.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=Lemonade Tray
+Comment=Lemonade Server system tray
+Icon=ai.lemonade_server.Lemonade
+Exec=lemonade-tray
+Terminal=false
+Categories=Utility;
 EOF
 
 # --- System user home directory ---
@@ -232,19 +226,12 @@ chmod 0750 %{_sharedstatedir}/lemonade
 %postun server
 %systemd_postun_with_restart lemond.service
 
-%post tray
-%systemd_user_post lemonade-tray.service
-
-%preun tray
-%systemd_user_preun lemonade-tray.service
-
-%postun tray
-%systemd_user_postun_with_restart lemonade-tray.service
-
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-tray.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
+
 
 %files
 
@@ -253,15 +240,13 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %doc %{upstream}/README.md
 %{_bindir}/lemonade
 %{_bindir}/lemonade-server
-%{_bindir}/lemonade-web
 %{_bindir}/lemond
 %{_mandir}/man1/lemonade.1*
 %{_mandir}/man1/lemonade-server.1*
 %{_mandir}/man1/lemond.1*
 %{_datadir}/lemonade/
 %{_datadir}/lemonade-server/
-%{_datadir}/icons/hicolor/scalable/apps/lemonade.svg
-%{_datadir}/applications/lemonade-web.desktop
+%{_datadir}/icons/hicolor/scalable/apps/ai.lemonade_server.Lemonade.svg
 %dir %{_sysconfdir}/lemonade
 %dir %{_sysconfdir}/lemonade/conf.d
 %config(noreplace) %{_sysconfdir}/lemonade/conf.d/zz-secrets.conf
@@ -270,12 +255,18 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 
 %files tray
 %{_bindir}/lemonade-tray
-%{_userunitdir}/lemonade-tray.service
+%{_datadir}/applications/lemonade-tray.desktop
 
-%files app
+%files desktop
 %{_bindir}/lemonade-app
 %{_datadir}/applications/lemonade.desktop
 %{_datadir}/metainfo/lemonade.appdata.xml
+%{_datadir}/pixmaps/lemonade-app.svg
+
+%files web
+%{_bindir}/lemonade-web
+%{_bindir}/lemonade-web-app
+%{_datadir}/applications/lemonade-web.desktop
 
 %changelog
 * Mon May 04 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-1

@@ -18,9 +18,6 @@ To install both the server and the desktop application:
 # Enable the Copr repository
 sudo dnf copr enable abn/lemonade
 
-# Enable the Electron Copr repository (required for lemonade-app)
-sudo dnf copr enable sergiomb/electrons
-
 # Install everything
 sudo dnf install lemonade
 ```
@@ -33,14 +30,13 @@ You can also install the components independently:
 # Install only the server (headless)
 sudo dnf install lemonade-server
 
-# Install only the system tray (lightweight GTK interface, no Electron required)
+# Install only the system tray (lightweight GTK interface)
 # Note: This will automatically pull in lemonade-server as a dependency
 sudo dnf install lemonade-tray
 
 # Install only the desktop application
 # Note: This will automatically pull in lemonade-server as a dependency
-sudo dnf copr enable sergiomb/electrons
-sudo dnf install lemonade-app
+sudo dnf install lemonade-desktop
 ```
 
 ## Post-Installation
@@ -51,23 +47,21 @@ The core server runs as a system-wide service:
 
 ```bash
 # Start the server
-sudo systemctl start lemonade-server
+sudo systemctl start lemond
 
 # Enable the server to start at boot
-sudo systemctl enable lemonade-server
+sudo systemctl enable lemond
 ```
 
 ### System Tray (Desktop Users)
 
-For a graphical interface in your system tray, install the `lemonade-tray` package and enable the user-level service. **Note:** The core `lemonade-server` system service **must** be running for the tray to start successfully:
+For a graphical interface in your system tray, install the `lemonade-tray` package:
 
 ```bash
-# Install the tray package (if not already installed)
 sudo dnf install lemonade-tray
-
-# Enable and start the tray for the current user
-systemctl --user enable --now lemonade-tray
 ```
+
+Launch it from your application menu (search for "Lemonade Tray"), or run `lemonade-tray` directly. To have it start automatically at login, add it via your desktop environment's autostart settings (e.g. GNOME Tweaks → Startup Applications).
 
 Once started, a Lemonade icon will appear in your system tray, providing quick access to logs, settings, and the web interface.
 
