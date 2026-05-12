@@ -37,6 +37,10 @@ sudo dnf install lemonade-tray
 # Install only the desktop application
 # Note: This will automatically pull in lemonade-server as a dependency
 sudo dnf install lemonade-desktop
+
+# Install only the web interface launcher (opens the built-in web UI in a browser)
+# Note: This will automatically pull in lemonade-server as a dependency
+sudo dnf install lemonade-web
 ```
 
 ## Post-Installation
@@ -47,10 +51,10 @@ The core server runs as a system-wide service:
 
 ```bash
 # Start the server
-sudo systemctl start lemond
+sudo systemctl start lemond.service
 
 # Enable the server to start at boot
-sudo systemctl enable lemond
+sudo systemctl enable lemond.service
 ```
 
 ### System Tray (Desktop Users)
@@ -64,6 +68,14 @@ sudo dnf install lemonade-tray
 Launch it from your application menu (search for "Lemonade Tray"), or run `lemonade-tray` directly. To have it start automatically at login, add it via your desktop environment's autostart settings (e.g. GNOME Tweaks → Startup Applications).
 
 Once started, a Lemonade icon will appear in your system tray, providing quick access to logs, settings, and the web interface.
+
+### Web Interface
+
+The `lemonade-web` package installs a `lemonade-web` launcher and a desktop entry that open the server's built-in web UI in your browser. The web UI is served by `lemond` at `http://localhost:13305/lemonade` and requires the server to be running.
+
+### Desktop Application
+
+The `lemonade-desktop` package installs the `lemonade-app` Tauri desktop application, available from your application menu as "Lemonade Desktop". It connects to a running `lemond` instance.
 
 Configuration files are located in `/etc/lemonade/`.
 
