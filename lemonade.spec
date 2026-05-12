@@ -275,6 +275,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Wed May 13 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.4.0-1
+- update to v10.4.0 (arun.neelicattu@gmail.com)
+
 * Wed May 13 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-2
 - spec: add upgrade migration for package rename and service rename
   (arun.neelicattu@gmail.com)
