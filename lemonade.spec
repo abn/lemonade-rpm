@@ -269,6 +269,16 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Tue May 12 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-1
+- chore: add .gitignore for build artifacts (arun.neelicattu@gmail.com)
+- spec: packaging overhaul for v10.3.0 Tauri migration
+  (arun.neelicattu@gmail.com)
+- update to v10.3.0, migrate desktop app from Electron to Tauri
+  (arun.neelicattu@gmail.com)
+- fix: use %%{SOURCE1} for httplib patch in spec file
+  (arun.neelicattu@gmail.com)
+- update to v10.1.0 (arun.neelicattu@gmail.com)
+
 * Mon May 04 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.3.0-1
 - update to 10.3.0 (arun.neelicattu@gmail.com)
 - migrate from Electron to Tauri for the desktop app (arun.neelicattu@gmail.com)
