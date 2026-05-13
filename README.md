@@ -47,7 +47,9 @@ sudo dnf install lemonade-web
 
 ### Core Server
 
-The core server runs as a system-wide service:
+The core server can run either as a system-wide service (started by root, available to all users) or as a per-user service (started by you, runs only during your session).
+
+**System service** — suitable for servers or shared desktops:
 
 ```bash
 # Start the server
@@ -56,6 +58,20 @@ sudo systemctl start lemond.service
 # Enable the server to start at boot
 sudo systemctl enable lemond.service
 ```
+
+**User service** — suitable for personal desktops (no `sudo` required):
+
+```bash
+# Enable and start for the current user
+systemctl --user enable --now lemond.service
+
+# Stop and disable
+systemctl --user disable --now lemond.service
+```
+
+The user service stores data under your home directory and reads optional environment variables (e.g. `HF_TOKEN`, `LEMONADE_API_KEY`) from `~/.config/lemonade/conf.d/*.conf`.
+
+> **Note:** Running both the system service and the user service at the same time will cause a port conflict. Use one or the other.
 
 ### System Tray (Desktop Users)
 
@@ -77,7 +93,7 @@ The `lemonade-web` package installs a `lemonade-web` launcher and a desktop entr
 
 The `lemonade-desktop` package installs the `lemonade-app` Tauri desktop application, available from your application menu as "Lemonade Desktop". It connects to a running `lemond` instance.
 
-Configuration files are located in `/etc/lemonade/`.
+System-wide configuration files are located in `/etc/lemonade/conf.d/`. For the user service, per-user overrides go in `~/.config/lemonade/conf.d/`.
 
 ## Development
 
