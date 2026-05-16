@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.5.0
-Release:        1%{?dist}
+Release:        1
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -281,6 +281,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Sun May 17 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.5.0-1
+- update to v10.5.0 (arun.neelicattu@gmail.com)
+- feat: add lemond user systemd service (arun.neelicattu@gmail.com)
+
 * Wed May 13 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.4.0-1
 - update to v10.4.0 (arun.neelicattu@gmail.com)
 
