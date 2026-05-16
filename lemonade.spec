@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        10.4.0
+Version:        10.5.0
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
