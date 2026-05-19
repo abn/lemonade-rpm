@@ -225,11 +225,6 @@ getent passwd lemonade >/dev/null || \
 # Set ownership of the working directory now that the lemonade user exists.
 chown lemonade:lemonade %{_sharedstatedir}/lemonade
 chmod 0750 %{_sharedstatedir}/lemonade
-# Migrate from lemonade-server.service (renamed to lemond.service in 10.3.0).
-if systemctl is-enabled lemonade-server.service 2>/dev/null | grep -qE "^(enabled|enabled-runtime)$"; then
-    systemctl disable lemonade-server.service 2>/dev/null || :
-    systemctl enable lemond.service || :
-fi
 
 %preun server
 %systemd_preun lemond.service
