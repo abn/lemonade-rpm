@@ -2,7 +2,7 @@
 +++ b/CMakeLists.txt
 @@ -640,7 +640,9 @@
  target_link_libraries(lemonade-server-core PUBLIC nlohmann_json::nlohmann_json)
- 
+
  if(USE_SYSTEM_HTTPLIB)
 -    target_link_libraries(lemonade-server-core PUBLIC cpp-httplib)
 +    if(HTTPLIB_LIBRARIES)
@@ -14,7 +14,7 @@
 --- a/src/cpp/cli/CMakeLists.txt
 +++ b/src/cpp/cli/CMakeLists.txt
 @@ -32,7 +32,9 @@
- 
+
  # Link httplib based on what's available (set by parent CMakeLists.txt)
  if(USE_SYSTEM_HTTPLIB)
 -    target_link_libraries(lemonade PRIVATE cpp-httplib)
@@ -24,24 +24,11 @@
  else()
      target_link_libraries(lemonade PRIVATE httplib::httplib)
  endif()
---- a/src/cpp/legacy-cli/CMakeLists.txt
-+++ b/src/cpp/legacy-cli/CMakeLists.txt
-@@ -9,7 +9,9 @@
- 
- # Link httplib (for stop command's HTTP POST) and nlohmann_json (for config)
- if(USE_SYSTEM_HTTPLIB)
--    target_link_libraries(lemonade-server PRIVATE cpp-httplib)
-+    if(HTTPLIB_LIBRARIES)
-+        target_link_libraries(lemonade-server PRIVATE ${HTTPLIB_LIBRARIES})
-+    endif()
- else()
-     target_link_libraries(lemonade-server PRIVATE httplib::httplib)
- endif()
 --- a/src/cpp/tray/CMakeLists.txt
 +++ b/src/cpp/tray/CMakeLists.txt
-@@ -107,7 +107,9 @@
-         target_include_directories(${target_name} PRIVATE ${HTTPLIB_INCLUDE_DIRS})
-     endif()
+@@ -149,7 +149,9 @@
+     target_link_libraries(${target_name} PRIVATE nlohmann_json::nlohmann_json)
+
      if(USE_SYSTEM_HTTPLIB)
 -        target_link_libraries(${target_name} PRIVATE cpp-httplib)
 +        if(HTTPLIB_LIBRARIES)

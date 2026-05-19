@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        10.5.0
+Version:        10.5.1
 Release:        1
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
@@ -179,7 +179,7 @@ install -Dpm 0644 /dev/stdin \
   <launchable type="desktop-id">lemonade.desktop</launchable>
   <url type="homepage">https://lemonade-server.ai/</url>
   <provides>
-    <binary>lemonade-server</binary>
+    <binary>lemond</binary>
     <binary>lemonade-app</binary>
   </provides>
 </component>
@@ -245,10 +245,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %license %{upstream}/LICENSE
 %doc %{upstream}/README.md
 %{_bindir}/lemonade
-%{_bindir}/lemonade-server
 %{_bindir}/lemond
 %{_mandir}/man1/lemonade.1*
-%{_mandir}/man1/lemonade-server.1*
 %{_mandir}/man1/lemond.1*
 %{_datadir}/lemonade/
 %{_datadir}/lemonade-server/
