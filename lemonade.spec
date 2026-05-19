@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.5.1
-Release:        1
+Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -9,9 +9,10 @@ URL:            https://lemonade-server.ai/
 Source0:        %{name}-%{version}.tar.gz
 Source1:        patches/0001-fix-httplib.patch
 Source2:        lemond.user.service
+Source3:        lemonade.sysusers
 %global upstream lemonade
 
-%define debug_package %{nil}
+%global debug_package %{nil}
 
 # C++ build toolchain (server + tray)
 BuildRequires:  cmake
@@ -49,8 +50,8 @@ BuildRequires:  javascriptcoregtk4.1-devel
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 
-Requires:       %{name}-server = %{version}-%{release}
-Requires:       %{name}-desktop = %{version}-%{release}
+Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+Requires:       %{name}-desktop%{?_isa} = %{version}-%{release}
 
 %description
 Lemonade is a lightweight, high-performance local LLM server with support for
@@ -63,8 +64,10 @@ desktop application.
 Summary:        Server components for Lemonade
 Provides:       lemonade-cli = %{version}-%{release}
 Provides:       lemond = %{version}-%{release}
-# Required to create the lemonade system user in %pre
-Requires(pre):  shadow-utils
+# The lemonade system user/group is created from the sysusers.d file
+# (%%sysusers_create_compat in %%pre). On F42+ this macro is a no-op and
+# the user is created automatically from %%{_sysusersdir}/lemonade.conf.
+%{?sysusers_requires_compat}
 %{?systemd_requires}
 # owns /usr/share/icons/hicolor/ tree where the app icon is installed
 Requires:       hicolor-icon-theme
@@ -91,7 +94,7 @@ Lemonade LLM server.
 
 %package web
 Summary:        Web browser launcher for Lemonade
-Requires:       %{name}-server = %{version}-%{release}
+Requires:       %{name}-server%{?_isa} = %{version}-%{release}
 Requires:       xdg-utils
 
 %description web
@@ -105,7 +108,7 @@ pushd %{upstream}
 patch -p1 < %{SOURCE1}
 popd
 %build
-# Configure from within the upstream source subdirectory (%{upstream}/)
+# Configure from within the upstream source subdirectory (%%{upstream}/)
 pushd %{upstream}
 %cmake -G Ninja \
     -DBUILD_ELECTRON_APP=OFF \
@@ -205,6 +208,11 @@ Terminal=false
 Categories=Utility;
 EOF
 
+# --- System user (sysusers.d) ---
+# Creates the lemonade system user/group; consumed by %%sysusers_create_compat
+# in %%pre (F<42) or automatically by rpm/systemd-sysusers (F42+).
+install -Dpm 0644 %{SOURCE3} %{buildroot}%{_sysusersdir}/lemonade.conf
+
 # --- System user home directory ---
 # /var/lib/lemonade is WorkingDirectory and ReadWritePaths for the service unit.
 install -dm 0750 %{buildroot}%{_sharedstatedir}/lemonade
@@ -214,23 +222,24 @@ install -dm 0750 %{buildroot}%{_sharedstatedir}/lemonade
 install -Dpm 0644 %{SOURCE2} %{buildroot}%{_userunitdir}/lemond.service
 
 %pre server
-# Create the lemonade system group and user if they do not already exist.
-getent group lemonade >/dev/null || groupadd -r lemonade
-getent passwd lemonade >/dev/null || \
-    useradd -r -g lemonade -d %{_sharedstatedir}/lemonade \
-            -s /sbin/nologin -c "Lemonade Server" lemonade
+# Create the lemonade system user/group from the sysusers.d config.
+# No-op on F42+ (rpm creates it from the packaged sysusers.d file instead).
+%sysusers_create_compat %{SOURCE3}
 
 %post server
 %systemd_post lemond.service
+%systemd_user_post lemond.service
 # Set ownership of the working directory now that the lemonade user exists.
 chown lemonade:lemonade %{_sharedstatedir}/lemonade
 chmod 0750 %{_sharedstatedir}/lemonade
 
 %preun server
 %systemd_preun lemond.service
+%systemd_user_preun lemond.service
 
 %postun server
 %systemd_postun_with_restart lemond.service
+%systemd_user_postun_with_restart lemond.service
 
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
@@ -256,6 +265,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %config(noreplace) %{_sysconfdir}/lemonade/conf.d/zz-secrets.conf
 %{_unitdir}/lemond.service
 %{_userunitdir}/lemond.service
+%{_sysusersdir}/lemonade.conf
 %dir %{_sharedstatedir}/lemonade
 
 %files tray

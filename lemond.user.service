@@ -1,5 +1,6 @@
 [Unit]
 Description=Lemonade Server (user)
+Documentation=https://lemonade-server.ai/
 After=network-online.target
 
 [Service]
