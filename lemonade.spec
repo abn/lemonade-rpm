@@ -274,6 +274,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Tue May 19 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.5.1-1
+- update to v10.5.1 (arun.neelicattu@gmail.com)
+- spec: drop lemonade-server.service migration from %%post
+  (arun.neelicattu@gmail.com)
+
 * Sun May 17 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.5.0-1
 - update to v10.5.0 (arun.neelicattu@gmail.com)
 - feat: add lemond user systemd service (arun.neelicattu@gmail.com)
