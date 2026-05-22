@@ -273,6 +273,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Fri May 22 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.6.0-1
+- update to v10.6.0 (arun.neelicattu@gmail.com)
+- spec: Fedora packaging guideline compliance (COPR-targeted batch)
+  (arun.neelicattu@gmail.com)
+
 * Tue May 19 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.5.1-1
 - update to v10.5.1 (arun.neelicattu@gmail.com)
 - spec: drop lemonade-server.service migration from %%post
