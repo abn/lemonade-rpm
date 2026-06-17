@@ -269,6 +269,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Wed Jun 17 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.8.0-1
+- update to v10.8.0 (arun.neelicattu@gmail.com)
+
 * Thu Jun 11 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.7.0-1
 - update to v10.7.0 (arun.neelicattu@gmail.com)
 
