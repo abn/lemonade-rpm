@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        10.9.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -339,6 +339,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Fri Jul 03 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.9.0-3
+- spec: split lemonade-cli into its own subpackage (arun.neelicattu@gmail.com)
+
 * Thu Jul 02 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.9.0-2
 - spec: implement paths config, post-install migrations, and guidelines fixes
   (arun.neelicattu@gmail.com)
