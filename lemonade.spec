@@ -62,8 +62,8 @@ desktop application.
 
 %package server
 Summary:        Server components for Lemonade
-Provides:       lemonade-cli = %{version}-%{release}
 Provides:       lemond = %{version}-%{release}
+Requires:       %{name}-cli%{?_isa} = %{version}-%{release}
 # The lemonade system user/group is created from the sysusers.d file
 # (%%sysusers_create_compat in %%pre). On F42+ this macro is a no-op and
 # the user is created automatically from %%{_sysusersdir}/lemonade.conf.
@@ -74,6 +74,14 @@ Requires:       hicolor-icon-theme
 
 %description server
 The Lemonade server subpackage contains the core LLM server and web interface.
+
+%package cli
+Summary:        Command-line interface for Lemonade
+Conflicts:      %{name}-server%{?_isa} < 10.9.0-3
+
+%description cli
+The Lemonade CLI subpackage contains the command-line client for interacting
+with the Lemonade LLM server.
 
 %package tray
 Summary:        System tray application for Lemonade
@@ -296,9 +304,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %files server
 %license %{upstream}/LICENSE
 %doc %{upstream}/README.md
-%{_bindir}/lemonade
 %{_bindir}/lemond
-%{_mandir}/man1/lemonade.1*
 %{_mandir}/man1/lemond.1*
 %{_datadir}/lemonade/
 %{_datadir}/lemonade-server/
@@ -311,6 +317,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_userunitdir}/lemond.service
 %{_sysusersdir}/lemonade.conf
 %dir %{_sharedstatedir}/lemonade
+
+%files cli
+%license %{upstream}/LICENSE
+%{_bindir}/lemonade
+%{_mandir}/man1/lemonade.1*
 
 %files tray
 %{_bindir}/lemonade-tray
