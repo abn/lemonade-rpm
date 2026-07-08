@@ -339,6 +339,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Wed Jul 08 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.10.0-1
+- update to v10.10.0 (arun.neelicattu@gmail.com)
+
 * Fri Jul 03 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.9.0-3
 - spec: split lemonade-cli into its own subpackage (arun.neelicattu@gmail.com)
 
