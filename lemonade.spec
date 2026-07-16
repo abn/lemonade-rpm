@@ -339,6 +339,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Thu Jul 16 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.0.0-1
+- Bump version to 11.0.0 and update submodule (arun.neelicattu@gmail.com)
+- docs: document lemonade-cli subpackage in README (arun.neelicattu@gmail.com)
+
 * Wed Jul 08 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 10.10.0-1
 - update to v10.10.0 (arun.neelicattu@gmail.com)
 
