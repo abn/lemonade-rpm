@@ -71,6 +71,9 @@ Requires:       %{name}-cli%{?_isa} = %{version}-%{release}
 %{?systemd_requires}
 # owns /usr/share/icons/hicolor/ tree where the app icon is installed
 Requires:       hicolor-icon-theme
+Requires:       unzip
+Requires:       tar
+Requires:       pciutils
 
 %description server
 The Lemonade server subpackage contains the core LLM server and web interface.
