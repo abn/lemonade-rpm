@@ -1,0 +1,33 @@
+From: Arun Babu Neelicattu <arun.neelicattu@gmail.com>
+Subject: [PATCH] Fix CLI HTTPS support when built with USE_SYSTEM_HTTPLIB
+
+When USE_SYSTEM_HTTPLIB is enabled, pkg_search_module might not locate
+a .pc file for cpp-httplib (e.g. on Fedora where cpp-httplib-devel ships
+CMake config files instead). This leaves HTTPLIB_VERSION unset, causing
+HTTPLIB_SUPPORTS_MBEDTLS to evaluate to FALSE.
+
+As a result, CPPHTTPLIB_MBEDTLS_SUPPORT is omitted from target compile
+definitions for the lemonade CLI target, leading to runtime error:
+"Error listing models: HTTPS support is not compiled in this client."
+
+Enable HTTPLIB_SUPPORTS_MBEDTLS whenever USE_SYSTEM_HTTPLIB is set, as
+the distro mbedtls development package is linked.
+
+---
+ src/cpp/cli/CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/cpp/cli/CMakeLists.txt b/src/cpp/cli/CMakeLists.txt
+index d28c308..75dfa3b 100640
+--- a/src/cpp/cli/CMakeLists.txt
++++ b/src/cpp/cli/CMakeLists.txt
+@@ -192,6 +192,8 @@ if(NOT USE_SYSTEM_HTTPLIB)
+     set(HTTPLIB_SUPPORTS_MBEDTLS TRUE)
+ elseif(HTTPLIB_VERSION AND NOT HTTPLIB_VERSION VERSION_LESS "0.31.0")
+     set(HTTPLIB_SUPPORTS_MBEDTLS TRUE)
++elseif(USE_SYSTEM_HTTPLIB)
++    set(HTTPLIB_SUPPORTS_MBEDTLS TRUE)
+ endif()
+ 
+ if(HTTPLIB_SUPPORTS_MBEDTLS)
+-- 
