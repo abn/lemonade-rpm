@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        11.5.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -344,6 +344,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Sat Jul 25 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.0-2
+- spec: fix CLI HTTPS support when built with system cpp-httplib
+  (arun.neelicattu@gmail.com)
+
 * Thu Jul 23 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.0-1
 - Bump version to 11.5.0 and update submodule (arun.neelicattu@gmail.com)
 
