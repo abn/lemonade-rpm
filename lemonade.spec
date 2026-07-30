@@ -344,6 +344,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Thu Jul 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.1-1
+- Bump version to 11.5.1 and update submodule (arun.neelicattu@gmail.com)
+
 * Sat Jul 25 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.0-2
 - spec: fix CLI HTTPS support when built with system cpp-httplib
   (arun.neelicattu@gmail.com)
