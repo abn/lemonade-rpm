@@ -50,7 +50,7 @@ BuildRequires:  javascriptcoregtk4.1-devel
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 
-Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+Requires:       (lemonade-server%{?_isa} = %{version}-%{release} or lemonade-server-embedded%{?_isa} = %{version}-%{release})
 Requires:       %{name}-desktop%{?_isa} = %{version}-%{release}
 
 %description
@@ -63,6 +63,8 @@ desktop application.
 %package server
 Summary:        Server components for Lemonade
 Provides:       lemond = %{version}-%{release}
+Provides:       lemonade-server-variant = %{version}-%{release}
+Conflicts:      %{name}-server-embedded%{?_isa}
 Requires:       %{name}-cli%{?_isa} = %{version}-%{release}
 # The lemonade system user/group is created from the sysusers.d file
 # (%%sysusers_create_compat in %%pre). On F42+ this macro is a no-op and
@@ -78,6 +80,21 @@ Requires:       pciutils
 %description server
 The Lemonade server subpackage contains the core LLM server and web interface.
 
+%package server-embedded
+Summary:        Embedded standalone server for Lemonade
+Provides:       lemond = %{version}-%{release}
+Provides:       lemonade-server-variant = %{version}-%{release}
+Conflicts:      %{name}-server%{?_isa}
+Requires:       hicolor-icon-theme
+Requires:       unzip
+Requires:       tar
+Requires:       pciutils
+
+%description server-embedded
+The Lemonade server embedded subpackage contains a portable, self-contained build of
+the core LLM server and bundled resource configurations. It runs standalone without
+requiring system service user setup.
+
 %package cli
 Summary:        Command-line interface for Lemonade
 Conflicts:      %{name}-server%{?_isa} < 10.9.0-3
@@ -88,7 +105,7 @@ with the Lemonade LLM server.
 
 %package tray
 Summary:        System tray application for Lemonade
-Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+Requires:       (lemonade-server%{?_isa} = %{version}-%{release} or lemonade-server-embedded%{?_isa} = %{version}-%{release})
 
 %description tray
 Provides the lemonade-tray system tray application. Users can configure it
@@ -96,7 +113,7 @@ to start at login via their desktop environment's autostart settings.
 
 %package desktop
 Summary:        Desktop application for Lemonade
-Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+Requires:       (lemonade-server%{?_isa} = %{version}-%{release} or lemonade-server-embedded%{?_isa} = %{version}-%{release})
 Obsoletes:      %{name}-app < %{version}-%{release}
 
 %description desktop
@@ -105,7 +122,7 @@ Lemonade LLM server.
 
 %package web
 Summary:        Web browser launcher for Lemonade
-Requires:       %{name}-server%{?_isa} = %{version}-%{release}
+Requires:       (lemonade-server%{?_isa} = %{version}-%{release} or lemonade-server-embedded%{?_isa} = %{version}-%{release})
 Requires:       xdg-utils
 Requires:       jq
 
@@ -130,6 +147,7 @@ pushd %{upstream}
     -DUSE_SYSTEM_NODEJS_MODULES=OFF \
     -DREQUIRE_LINUX_TRAY=ON
 %cmake_build
+%cmake_build --target embeddable
 popd
 
 # Build the Tauri app
@@ -231,6 +249,14 @@ LEMONADE_CACHE_DIR=%{_sharedstatedir}/lemonade
 HF_HOME=%{_sharedstatedir}/lemonade/huggingface
 EOF
 
+# --- Embedded server subpackage installation ---
+EMBED_DIR=$(find %{upstream}/%{_vpath_builddir} -maxdepth 1 -type d -name "lemonade-embeddable-*" | head -n 1)
+install -dm 0755 %{buildroot}%{_libexecdir}/lemonade-embedded
+install -Dpm 0755 ${EMBED_DIR}/lemond %{buildroot}%{_libexecdir}/lemonade-embedded/lemond
+
+install -dm 0755 %{buildroot}%{_libexecdir}/lemonade-embedded/resources
+install -Dpm 0644 ${EMBED_DIR}/resources/* %{buildroot}%{_libexecdir}/lemonade-embedded/resources/
+
 %pre server
 # Create the lemonade system user/group from the sysusers.d config.
 # No-op on F42+ (rpm creates it from the packaged sysusers.d file instead).
@@ -295,6 +321,14 @@ fi
 %systemd_postun_with_restart lemond.service
 %systemd_user_postun_with_restart lemond.service
 
+%post server-embedded
+ln -sf %{_libexecdir}/lemonade-embedded/lemond %{_bindir}/lemond
+
+%postun server-embedded
+if [ $1 -eq 0 ]; then
+    rm -f %{_bindir}/lemond
+fi
+
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
@@ -320,6 +354,13 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_userunitdir}/lemond.service
 %{_sysusersdir}/lemonade.conf
 %dir %{_sharedstatedir}/lemonade
+
+%files server-embedded
+%license %{upstream}/LICENSE
+%doc %{upstream}/README.md
+%{_libexecdir}/lemonade-embedded/
+%ghost %{_bindir}/lemond
+%{_mandir}/man1/lemond.1*
 
 %files cli
 %license %{upstream}/LICENSE

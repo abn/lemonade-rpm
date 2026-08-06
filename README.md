@@ -30,20 +30,24 @@ You can also install the components independently:
 # Install only the command-line interface (CLI client)
 sudo dnf install lemonade-cli
 
-# Install only the server (headless)
+# Install only the system service server (headless multi-tenant background service)
 # Note: This will automatically pull in lemonade-cli as a dependency
 sudo dnf install lemonade-server
 
+# Install only the embedded standalone server (portable, single-user, self-contained server)
+# Note: Conflicts with lemonade-server; works with lemonade-web, tray, desktop, and cli
+sudo dnf install lemonade-server-embedded
+
 # Install only the system tray (lightweight GTK interface)
-# Note: This will automatically pull in lemonade-server (which pulls in lemonade-cli)
+# Note: Requires lemonade-server or lemonade-server-embedded
 sudo dnf install lemonade-tray
 
 # Install only the desktop application
-# Note: This will automatically pull in lemonade-server (which pulls in lemonade-cli)
+# Note: Requires lemonade-server or lemonade-server-embedded
 sudo dnf install lemonade-desktop
 
 # Install only the web interface launcher (opens the built-in web UI in a browser)
-# Note: This will automatically pull in lemonade-server (which pulls in lemonade-cli)
+# Note: Requires lemonade-server or lemonade-server-embedded
 sudo dnf install lemonade-web
 ```
 
