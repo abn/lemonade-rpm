@@ -157,8 +157,8 @@ popd
 # Build the Tauri app
 pushd %{upstream}/src/app
 npm config set audit false
-npm install
-npm run build:nobundle
+npm install --no-audit --no-fund --prefer-offline
+CARGO_BUILD_JOBS=%{?_smp_mflags} npm run build:nobundle
 popd
 
 %install
