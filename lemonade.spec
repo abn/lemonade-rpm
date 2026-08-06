@@ -342,6 +342,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Thu Aug 06 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.2-1
+- Bump version to 11.5.2 and update submodule (arun.neelicattu@gmail.com)
+
 * Thu Jul 30 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.1-1
 - Bump version to 11.5.1 and update submodule (arun.neelicattu@gmail.com)
 
