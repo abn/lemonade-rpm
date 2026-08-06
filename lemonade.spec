@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        11.5.1
+Version:        11.5.2
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
@@ -9,7 +9,6 @@ URL:            https://lemonade-server.ai/
 Source0:        %{name}-%{version}.tar.gz
 # Fedora/Flatpak specific: Move Tauri settings file from ~/.cache to ~/.config (XDG compliance)
 Patch0:         patches/0001-fix-app-store-settings-under-user-config-dir.patch
-Patch1:         patches/0002-enable-cli-https-support-with-system-httplib.patch
 %global upstream lemonade
 
 %global debug_package %{nil}
@@ -118,7 +117,6 @@ the Lemonade web interface in a browser.
 %autosetup -N -n %{name}-%{version}
 pushd %{upstream}
 %patch -P 0 -p1
-%patch -P 1 -p1
 popd
 %build
 # Configure from within the upstream source subdirectory (%%{upstream}/)
