@@ -75,6 +75,8 @@ Requires:       %{name}-cli%{?_isa} = %{version}-%{release}
 Requires:       hicolor-icon-theme
 Requires:       unzip
 Requires:       tar
+Requires:       gzip
+Requires:       xz
 Requires:       pciutils
 
 %description server
@@ -88,6 +90,8 @@ Conflicts:      %{name}-server%{?_isa}
 Requires:       hicolor-icon-theme
 Requires:       unzip
 Requires:       tar
+Requires:       gzip
+Requires:       xz
 Requires:       pciutils
 
 %description server-embedded
