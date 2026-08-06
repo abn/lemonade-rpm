@@ -78,6 +78,7 @@ Requires:       tar
 Requires:       gzip
 Requires:       xz
 Requires:       pciutils
+Requires:       libgomp
 
 %description server
 The Lemonade server subpackage contains the core LLM server and web interface.
@@ -93,6 +94,7 @@ Requires:       tar
 Requires:       gzip
 Requires:       xz
 Requires:       pciutils
+Requires:       libgomp
 
 %description server-embedded
 The Lemonade server embedded subpackage contains a portable, self-contained build of
