@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        11.5.2
+Version:        11.6.0
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
@@ -158,7 +158,7 @@ popd
 pushd %{upstream}/src/app
 npm config set audit false
 npm install --no-audit --no-fund --prefer-offline
-CARGO_BUILD_JOBS=%{?_smp_mflags} npm run build:nobundle
+CARGO_BUILD_JOBS=%{?_smp_build_ncpus} npm run build:nobundle
 popd
 
 %install
