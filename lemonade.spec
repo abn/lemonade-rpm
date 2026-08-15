@@ -387,6 +387,18 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/applications/lemonade-web.desktop
 
 %changelog
+* Sat Aug 15 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.6.0-1
+- Bump version to 11.6.0 and update submodule (arun.neelicattu@gmail.com)
+- Revert "spec: add explicit libgomp dependency for llama-server runtime
+  backend" (arun.neelicattu@gmail.com)
+- spec: add explicit libgomp dependency for llama-server runtime backend
+  (arun.neelicattu@gmail.com)
+- spec: optimize npm install flags and Cargo build parallelism
+  (arun.neelicattu@gmail.com)
+- spec: add explicit gzip and xz dependencies for backend extraction
+  (arun.neelicattu@gmail.com)
+- feat: add lemonade-server-embedded subpackage (arun.neelicattu@gmail.com)
+
 * Thu Aug 06 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.5.2-1
 - Bump version to 11.5.2 and update submodule (arun.neelicattu@gmail.com)
 
