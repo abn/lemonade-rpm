@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        11.6.0
+Version:        11.7.0
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
@@ -190,7 +190,7 @@ mv %{buildroot}%{_datadir}/applications/lemonade-app.desktop \
 # lemonade-web.desktop: web interface launcher (base package)
 desktop-file-install \
     --dir=%{buildroot}%{_datadir}/applications \
-    --set-key=Exec --set-value=lemonade-web \
+    --set-key=Exec --set-value="lemonade-web %u" \
     --set-icon=ai.lemonade_server.Lemonade \
     %{upstream}/data/lemonade-web-app.desktop
 mv %{buildroot}%{_datadir}/applications/lemonade-web-app.desktop \
@@ -335,6 +335,7 @@ fi
 
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/lemonade.appdata.xml
+appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/ai.lemonade_server.webapp.metainfo.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-tray.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
@@ -385,6 +386,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_bindir}/lemonade-web
 %{_bindir}/lemonade-web-app
 %{_datadir}/applications/lemonade-web.desktop
+%{_datadir}/metainfo/ai.lemonade_server.webapp.metainfo.xml
 
 %changelog
 * Sat Aug 15 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.6.0-1
