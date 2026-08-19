@@ -389,6 +389,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonade_server.webapp.metainfo.xml
 
 %changelog
+* Wed Aug 19 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.7.0-1
+- Bump version to 11.7.0 and update submodule (arun.neelicattu@gmail.com)
+
 * Sat Aug 15 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.6.0-1
 - Bump version to 11.6.0 and update submodule (arun.neelicattu@gmail.com)
 - Revert "spec: add explicit libgomp dependency for llama-server runtime
