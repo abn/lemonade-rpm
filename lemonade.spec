@@ -258,46 +258,12 @@ install -Dpm 0644 ${EMBED_DIR}/resources/* %{buildroot}%{_libexecdir}/lemonade-e
 %systemd_post lemond.service
 %systemd_user_post lemond.service
 
-# 1. Handle migration from upstream CPack home directory (/opt/var/lib/lemonade)
-if getent passwd lemonade >/dev/null; then
-    CURRENT_HOME=$(getent passwd lemonade | cut -d: -f6)
-    if [ "$CURRENT_HOME" = "/opt/var/lib/lemonade" ]; then
-        # Change home directory path without moving files (avoids failure if target exists)
-        usermod -d %{_sharedstatedir}/lemonade lemonade || true
-        # Manually migrate files safely
-        if [ -d "/opt/var/lib/lemonade" ]; then
-            mkdir -p %{_sharedstatedir}/lemonade
-            cp -a /opt/var/lib/lemonade/. %{_sharedstatedir}/lemonade/ 2>/dev/null || true
-            rm -rf /opt/var/lib/lemonade || true
-        fi
-    fi
-fi
-
 # Ensure state directory exists and has correct ownership
 mkdir -p %{_sharedstatedir}/lemonade
 chown lemonade:lemonade %{_sharedstatedir}/lemonade
 chmod 0750 %{_sharedstatedir}/lemonade
 
-# 2. Migrate existing user cache structure if upgrading from previous versions
-if [ -d "%{_sharedstatedir}/lemonade/.cache/lemonade" ]; then
-    find "%{_sharedstatedir}/lemonade/.cache/lemonade" -mindepth 1 -maxdepth 1 -exec mv -t "%{_sharedstatedir}/lemonade" {} + || true
-    rmdir "%{_sharedstatedir}/lemonade/.cache/lemonade" || true
-fi
-
-if [ -d "%{_sharedstatedir}/lemonade/.cache/huggingface" ]; then
-    if [ ! -d "%{_sharedstatedir}/lemonade/huggingface" ]; then
-        mv "%{_sharedstatedir}/lemonade/.cache/huggingface" "%{_sharedstatedir}/lemonade/huggingface" || true
-    fi
-    rmdir "%{_sharedstatedir}/lemonade/.cache" 2>/dev/null || true
-fi
-
-# Ensure ownership and permissions are correct after file movements
-chown -R lemonade:lemonade %{_sharedstatedir}/lemonade
-chmod 0750 %{_sharedstatedir}/lemonade
-find %{_sharedstatedir}/lemonade -type d -exec chmod 0750 {} + 2>/dev/null || true
-find %{_sharedstatedir}/lemonade -type f -exec chmod 0640 {} + 2>/dev/null || true
-
-# 3. Add lemonade user to render and video groups for hardware acceleration
+# Add lemonade user to render and video groups for hardware acceleration
 if getent group render >/dev/null; then
     usermod -a -G render lemonade || true
 fi
