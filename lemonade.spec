@@ -279,6 +279,26 @@ if getent group video >/dev/null; then
     usermod -a -G video lemonade || true
 fi
 
+# Warn if legacy CPack installation directory is detected
+if [ -d "/opt/var/lib/lemonade" ]; then
+    cat << 'EOF' >&2
+
+================================================================================
+WARNING: Legacy CPack data directory detected at /opt/var/lib/lemonade
+================================================================================
+Fedora packages use standard FHS paths:
+  - State & Config : %{_sharedstatedir}/lemonade
+  - Cache & Blobs  : %{_localstatedir}/cache/lemonade
+  - Model Storage  : %{_localstatedir}/cache/huggingface
+  - Service Config : %{_sysconfdir}/default/lemond
+
+Please consider manually migrating your configuration or model files to the
+standard locations and removing /opt/var/lib/lemonade.
+================================================================================
+
+EOF
+fi
+
 %preun server
 %systemd_preun lemond.service
 %systemd_user_preun lemond.service
