@@ -28,7 +28,8 @@ git -C lemonade diff --name-only vPREV..vNEW
 
 1. **Check CMake / Link Changes:** Inspect the root `CMakeLists.txt` and `src/cpp/CMakeLists.txt` for any new build-time options, library additions, or link dependencies (e.g. `drm_amdgpu` added in v11.0.0).
 2. **Check Assets / CLI / Files:** Verify if any new commands, desktop entries, or static resource directories are added or deleted in `data/` or upstream `install` rules.
-3. **Verify Existing Patches:** Run `git apply --check` for every patch in the `patches/` directory to make sure they still apply cleanly. For example:
+3. **Verify FHS & Path Compliance:** Ensure upstream changes haven't regressed FHS separation for system services (`/var/lib/lemonade` for state, `/var/cache/lemonade` and `/var/cache/huggingface` for cache/models). If upstream drops standard paths in favor of `$HOME/.cache` workarounds, enforce FHS via `/etc/default/lemond` or systemd service configurations.
+4. **Verify Existing Patches:** Run `git apply --check` for every patch in the `patches/` directory to make sure they still apply cleanly. For example:
    ```bash
    git -C lemonade apply --check ../patches/0001-fix-app-store-settings-under-user-config-dir.patch
    ```
