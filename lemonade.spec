@@ -241,6 +241,14 @@ EOF
 # /var/lib/lemonade is the lemond service WorkingDirectory (StateDirectory).
 install -dm 0750 %{buildroot}%{_sharedstatedir}/lemonade
 
+# --- Systemd drop-in for Fedora FHS path enforcement ---
+install -Dpm 0644 /dev/stdin \
+    %{buildroot}%{_unitdir}/lemond.service.d/10-fhs-paths.conf << 'EOF'
+[Service]
+Environment=HF_HOME=/var/cache/huggingface
+CacheDirectory=lemonade huggingface
+EOF
+
 # --- Embedded server subpackage installation ---
 EMBED_DIR=$(find %{upstream}/%{_vpath_builddir} -maxdepth 1 -type d -name "lemonade-embeddable-*" | head -n 1)
 install -dm 0755 %{buildroot}%{_libexecdir}/lemonade-embedded
@@ -307,6 +315,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/icons/hicolor/scalable/apps/ai.lemonade_server.Lemonade.svg
 %config(noreplace) %{_sysconfdir}/default/lemond
 %{_unitdir}/lemond.service
+%dir %{_unitdir}/lemond.service.d
+%{_unitdir}/lemond.service.d/10-fhs-paths.conf
 %{_userunitdir}/lemond.service
 %{_sysusersdir}/lemonade.conf
 %dir %{_sharedstatedir}/lemonade
