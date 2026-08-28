@@ -370,6 +370,21 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Fri Aug 28 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.8.1-1
+- Bump version to 11.8.1 and update submodule (arun.neelicattu@gmail.com)
+- feat(spec): add post-install warning for legacy CPack installations
+  (arun.neelicattu@gmail.com)
+- feat(spec): add systemd drop-in to enforce FHS paths for lemond service
+  (arun.neelicattu@gmail.com)
+- refactor(spec): drop legacy post-install migration scriptlets
+  (arun.neelicattu@gmail.com)
+- chore: add FHS and Fedora packaging invariant to bump skill
+  (arun.neelicattu@gmail.com)
+- docs: clarify native Fedora system integration vs upstream CPack script
+  (arun.neelicattu@gmail.com)
+- docs: update configuration and upstream divergence details in README
+  (arun.neelicattu@gmail.com)
+
 * Wed Aug 26 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.8.0-1
 - Bump version to 11.8.0, drop upstreamed patch, and update spec
   (arun.neelicattu@gmail.com)
