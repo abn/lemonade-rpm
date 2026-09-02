@@ -370,6 +370,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Thu Sep 03 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.9.0-1
+- Bump version to 11.9.0 and update submodule (arun.neelicattu@gmail.com)
+
 * Fri Aug 28 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 11.8.1-1
 - Bump version to 11.8.1 and update submodule (arun.neelicattu@gmail.com)
 - feat(spec): add post-install warning for legacy CPack installations
