@@ -246,7 +246,6 @@ install -Dpm 0644 /dev/stdin \
     %{buildroot}%{_unitdir}/lemond.service.d/10-fhs-paths.conf << 'EOF'
 [Service]
 Environment=HF_HOME=/var/cache/huggingface
-CacheDirectory=lemonade huggingface
 EOF
 
 # --- Embedded server subpackage installation ---
