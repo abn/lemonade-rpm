@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        11.9.0
+Version:        2026.39.1
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
@@ -16,6 +16,8 @@ BuildRequires:  cmake
 BuildRequires:  ninja-build
 BuildRequires:  gcc-c++
 BuildRequires:  git
+BuildRequires:  python3
+BuildRequires:  pkgconfig
 
 # lemonade-server
 BuildRequires:  systemd-rpm-macros
@@ -134,6 +136,7 @@ the Lemonade web interface in a browser.
 
 %prep
 %autosetup -n %{name}-%{version}
+echo "%{version}" > %{upstream}/.version
 
 %build
 # Configure from within the upstream source subdirectory (%%{upstream}/)
