@@ -373,6 +373,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Wed Oct 07 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.41.1-1
+- Bump version to 2026.41.1 and update submodule (arun.neelicattu@gmail.com)
+
 * Thu Oct 01 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.40.0-1
 - Bump version to 2026.40.0 and update submodule (arun.neelicattu@gmail.com)
 
