@@ -1,5 +1,5 @@
 Name:           lemonade
-Version:        2026.41.1
+Version:        2026.42.1
 Release:        1%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
