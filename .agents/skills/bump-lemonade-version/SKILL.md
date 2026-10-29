@@ -64,15 +64,20 @@ podman run -d --rm -i --name rpmbuilder-lemonade -v ${PWD}:/sources:z quay.io/ab
 ```
 
 ### Step 3.3: Trigger the Build
+Builds can take **60 minutes or more** due to compiling hundreds of C++ objects. Always run as a background command and tail the logs instead of waiting interactively:
 ```bash
-podman exec rpmbuilder-lemonade rpmbuilder
+podman exec rpmbuilder-lemonade rpmbuilder > /tmp/build.log 2>&1 &
+BUILD_PID=$!
+# Wait for build completion (may take an hour+)
+wait $BUILD_PID
+tail -30 /tmp/build.log
 ```
 
 ### Step 3.4: Verify the Build Output
-Inspect the logs and build outputs in the `/output` folder (or container log) to confirm:
-- AppStream metadata is valid (no validation warnings).
-- No "Installed (but unpackaged)" file errors.
-- Every expected subpackage (`lemonade-cli`, `lemonade-server`, `lemonade-tray`, `lemonade-desktop`, `lemonade-web`) is successfully written as an `.rpm` file.
+Check `/tmp/build.log` for success markers to confirm:
+- No `error:` lines (warnings are fine — `-Wreorder`, `-Wunused-function`, etc. are expected).
+- `Checking for unpackaged file(s)` passes with no errors.
+- Every expected subpackage appears in a `Wrote:` line (`lemonade-cli`, `lemonade-server`, `lemonade-tray`, `lemonade-desktop`, `lemonade-web`, `lemonade-server-embedded`).
 
 ### Step 3.5: Clean up the Container
 ```bash
