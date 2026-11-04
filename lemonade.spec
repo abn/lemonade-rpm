@@ -373,6 +373,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Wed Nov 04 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.45.3-1
+- Bump version to 2026.45.3 and update submodule (openhands@all-hands.dev)
+- docs: update bump skill with build timeout and log verification notes
+  (arun.neelicattu@gmail.com)
+
 * Thu Oct 29 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.44.1-1
 - Bump version to 2026.44.1 and update submodule (arun.neelicattu@gmail.com)
 
