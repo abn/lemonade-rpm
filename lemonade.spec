@@ -142,6 +142,7 @@ echo "%{version}" > %{upstream}/.version
 # Configure from within the upstream source subdirectory (%%{upstream}/)
 pushd %{upstream}
 %cmake -G Ninja \
+    -DBUILD_TESTING=OFF \
     -DBUILD_ELECTRON_APP=OFF \
     -DBUILD_TAURI_APP=OFF \
     -DUSE_SYSTEM_JSON=ON \
