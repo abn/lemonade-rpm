@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        2026.45.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -374,6 +374,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Mon Nov 09 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.45.3-2
+- fix(spec): disable CMake test targets (arun.neelicattu@gmail.com)
+
 * Wed Nov 04 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.45.3-1
 - Bump version to 2026.45.3 and update submodule (openhands@all-hands.dev)
 - docs: update bump skill with build timeout and log verification notes
