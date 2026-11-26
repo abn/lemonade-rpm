@@ -1,6 +1,6 @@
 Name:           lemonade
 Version:        2026.48.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lightweight, high-performance local LLM server
 License:        Apache-2.0
 URL:            https://lemonade-server.ai/
@@ -379,6 +379,12 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/lemonade-web.desktop
 %{_datadir}/metainfo/ai.lemonadeserver.webapp.metainfo.xml
 
 %changelog
+* Thu Nov 26 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.48.3-2
+- fix(spec): restore huggingface cache directory without colon-joined env
+  (arun.neelicattu@gmail.com)
+- fix(spec): remove multiple CacheDirectory entries from lemond service (#4)
+  (enrico.tagliavini@gmail.com)
+
 * Wed Nov 25 2026 Arun Babu Neelicattu <arun.neelicattu@gmail.com> 2026.48.3-1
 - Bump version to 2026.48.3 and update submodule (arun.neelicattu@gmail.com)
 
