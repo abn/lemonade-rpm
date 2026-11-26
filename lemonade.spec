@@ -246,10 +246,16 @@ EOF
 install -dm 0750 %{buildroot}%{_sharedstatedir}/lemonade
 
 # --- Systemd drop-in for Fedora FHS path enforcement ---
+# lemond reads CACHE_DIRECTORY as a single path. Systemd joins multiple
+# CacheDirectory= entries with ':', so both cache directories are declared here
+# (created and chowned by systemd) and CACHE_DIRECTORY is pinned to the one
+# lemond consumes.
 install -Dpm 0644 /dev/stdin \
     %{buildroot}%{_unitdir}/lemond.service.d/10-fhs-paths.conf << 'EOF'
 [Service]
 Environment=HF_HOME=/var/cache/huggingface
+Environment=CACHE_DIRECTORY=/var/cache/lemonade
+CacheDirectory=lemonade huggingface
 EOF
 
 # --- Embedded server subpackage installation ---
